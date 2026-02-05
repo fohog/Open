@@ -399,6 +399,84 @@
     </div>
   </div>
 
+  <div class="onboarding-overlay hidden" id="onboarding-overlay">
+    <div class="onboarding-card">
+      <div class="section-header">
+        <div class="section-head">
+          <h3 class="section-title" data-i18n="onboarding.title"></h3>
+          <div class="section-desc" id="onboarding-step-indicator"></div>
+        </div>
+      </div>
+      <div class="onboarding-pages">
+        <section class="onboarding-page" data-step="0">
+          <div class="section-desc" data-i18n="onboarding.page1.desc"></div>
+          <iframe class="onboarding-preview" src="chooser-preview.html" title="Chooser preview"></iframe>
+        </section>
+        <section class="onboarding-page hidden" data-step="1">
+          <div class="section-desc" data-i18n="onboarding.page2.desc"></div>
+          <div class="inline-actions">
+            <button class="button secondary" id="onboarding-add-custom" type="button" data-i18n="settings.browsers.add"></button>
+            <button class="button secondary" id="onboarding-register" type="button" data-i18n="settings.integration.register"></button>
+            <button class="button secondary" id="onboarding-open-defaults" type="button" data-i18n="settings.integration.defaultAction"></button>
+          </div>
+          <div class="status" id="onboarding-integration-status"></div>
+        </section>
+        <section class="onboarding-page hidden" data-step="2">
+          <div class="section-desc" data-i18n="onboarding.page3.desc"></div>
+          <div class="inline-actions">
+            <button class="button" id="onboarding-scan" type="button" data-i18n="settings.browsers.scan"></button>
+          </div>
+          <div class="onboarding-browser-list" id="onboarding-browser-list"></div>
+        </section>
+        <section class="onboarding-page hidden" data-step="3">
+          <div class="section-desc" data-i18n="onboarding.page4.desc"></div>
+          <div class="rule-field">
+            <div class="section-desc" data-i18n="settings.language.label"></div>
+            <select class="input" id="onboarding-language-select">
+              <option value="zh-CN" data-i18n="settings.language.zhCN"></option>
+              <option value="zh-TW" data-i18n="settings.language.zhTW"></option>
+              <option value="en-US" data-i18n="settings.language.enUS"></option>
+            </select>
+          </div>
+          <div class="rule-field">
+            <div class="section-desc" data-i18n="settings.appearance.effect.label"></div>
+            <select class="input" id="onboarding-window-effect">
+              <option value="mica" data-i18n="settings.appearance.effect.mica"></option>
+              <option value="acrylic" data-i18n="settings.appearance.effect.acrylic"></option>
+              <option value="tabbed" data-i18n="settings.appearance.effect.tabbed"></option>
+            </select>
+          </div>
+          <div class="rule-field">
+            <div class="section-desc" data-i18n="settings.appearance.inputMode.label"></div>
+            <select class="input" id="onboarding-input-mode">
+              <option value="link" data-i18n="settings.appearance.inputMode.link"></option>
+              <option value="search" data-i18n="settings.appearance.inputMode.search"></option>
+              <option value="hidden" data-i18n="settings.appearance.inputMode.hidden"></option>
+            </select>
+          </div>
+          <div class="rule-field">
+            <div class="section-desc" data-i18n="settings.appearance.profileColumns.label"></div>
+            <select class="input" id="onboarding-columns">
+              <option value="1" data-i18n="settings.appearance.profileColumns.one"></option>
+              <option value="2" data-i18n="settings.appearance.profileColumns.two"></option>
+              <option value="3" data-i18n="settings.appearance.profileColumns.three"></option>
+              <option value="4" data-i18n="settings.appearance.profileColumns.four"></option>
+            </select>
+          </div>
+        </section>
+        <section class="onboarding-page hidden" data-step="4">
+          <div class="section-desc" data-i18n="onboarding.page5.desc"></div>
+        </section>
+      </div>
+      <div class="onboarding-actions">
+        <button class="button ghost" id="onboarding-back" type="button" data-i18n="onboarding.back"></button>
+        <button class="button ghost m-right-auto" id="onboarding-skip" type="button" data-i18n="onboarding.skip"></button>
+        <button class="button" id="onboarding-next" type="button" data-i18n="onboarding.next"></button>
+        <button class="button hidden" id="onboarding-finish" type="button" data-i18n="onboarding.finish"></button>
+      </div>
+    </div>
+  </div>
+
   <dialog class="manager-dialog" id="duplicate-dialog">
     <div class="manager-dialog-title" data-i18n="manager.duplicate.title"></div>
     <div class="manager-dialog-desc" id="duplicate-desc" data-i18n="manager.duplicate.desc"></div>
@@ -464,6 +542,11 @@
         <input class="input" id="custom-browser-userdata" type="text" />
         <button class="button secondary" id="custom-browser-userdata-pick" type="button" data-i18n="settings.custom.add.userDataPick"></button>
       </div>
+      <div class="inline-actions">
+        <button class="button secondary" id="custom-browser-validate" type="button" data-i18n="settings.custom.validate.action"></button>
+        <div class="status" id="custom-browser-validation-summary"></div>
+      </div>
+      <div class="rule-validation-list" id="custom-browser-validation-list"></div>
     </div>
     <div class="manager-dialog-actions">
       <button class="button ghost" id="custom-browser-cancel" type="button" data-i18n="manager.cancel"></button>

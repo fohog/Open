@@ -3,7 +3,7 @@ let config = null;
 let debugOverride = false;
 let browserIcons = {};
 
-const browserOrder = ['edge', 'chrome', 'firefox', 'brave', 'vivaldi', 'chromium', 'arc', 'zen'];
+const browserOrder = ['edge', 'edge-beta', 'edge-dev', 'edge-canary', 'chrome', 'chrome-beta', 'chrome-dev', 'chrome-canary', 'firefox', 'brave', 'vivaldi', 'chromium', 'arc', 'zen'];
 const selection = new Set();
 let tableRenderId = 0;
 const sizeCache = new Map();
@@ -186,7 +186,14 @@ function getAccountLabel(profile) {
 function getRows() {
   const rows = [];
   const showAll = Boolean(debugOverride || (config && config.debug && config.debug.showAllBrowsers));
-  const ids = browserOrder.filter((id) => config && config.browsers && config.browsers[id]);
+  const allIds = config && config.browsers ? Object.keys(config.browsers) : [];
+  const ids = [];
+  browserOrder.forEach((id) => {
+    if (allIds.includes(id) && !ids.includes(id)) ids.push(id);
+  });
+  allIds.forEach((id) => {
+    if (!ids.includes(id)) ids.push(id);
+  });
   for (const browserId of ids) {
     const browser = config.browsers[browserId] || {};
     const profiles = Array.isArray(browser.profiles) ? browser.profiles : [];
@@ -579,7 +586,7 @@ async function doOpen() {
 async function doDelete() {
   const items = getSelectedItems();
   if (!items.length) return;
-  if (!confirm(t('manager.deleteConfirm'))) return;
+  if (!confirm(t('manager.deleteConfirmDetailed'))) return;
   const result = await window.api.deleteProfiles({ items });
   if (result && result.ok) {
     config = result.config || config;
@@ -587,6 +594,19 @@ async function doDelete() {
     renderTable();
     updateActionStates();
     setStatus(t('manager.status.saved'));
+    if (result.undoToken) {
+      const shouldUndo = window.confirm(t('manager.undo.ask'));
+      if (shouldUndo) {
+        const undone = await window.api.undoDeleteProfiles({ token: result.undoToken });
+        if (undone && undone.ok) {
+          config = undone.config || config;
+          selection.clear();
+          renderTable();
+          updateActionStates();
+          setStatus(t('manager.undo.done'));
+        }
+      }
+    }
   } else {
     setStatus(t('manager.status.failed'));
   }

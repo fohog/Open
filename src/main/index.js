@@ -13,6 +13,8 @@ const {
   normalizeTarget,
   resolveProfileFolder,
   detectSystemExecutable,
+  detectExecutable,
+  detectProfiles,
   getRulesForConfig,
   getBaseBrowserRules
 } = require('./browsers');
@@ -21,6 +23,7 @@ const {
   duplicateChromiumProfile,
   renameChromiumProfile,
   deleteProfileDir,
+  restoreProfileDir,
   duplicateFirefoxProfile,
   renameFirefoxProfile,
   readChromiumBookmarks,
@@ -38,10 +41,18 @@ const {
   getSettingsWindow
 } = require('./windows');
 const { chooserWindow } = require('./windows');
-const { isRegistered, registerBrowser, unregisterBrowser } = require('./windows-browser');
+const {
+  isRegistered,
+  isDefaultBrowser,
+  getDefaultBrowserProgIds,
+  registerBrowser,
+  unregisterBrowser
+} = require('./windows-browser');
 
 let pendingTarget = null;
 const iconCache = new Map();
+const deletedProfilesUndo = new Map();
+const DELETE_UNDO_TTL_MS = 5 * 60 * 1000;
 
 function isDebugOverride() {
   const flag = process.env.OPEN_DEBUG || process.env.OPEN_DEBUG_MODE;
@@ -89,6 +100,87 @@ function normalizeArg(arg) {
   const lower = cleaned.toLowerCase();
   if (htmlExtensions.some((ext) => lower.endsWith(ext))) return cleaned;
   return '';
+}
+
+function getTrashProfilesDir() {
+  return path.join(app.getPath('userData'), 'TrashProfiles');
+}
+
+function storeUndoDeleteBatch(rows) {
+  const list = Array.isArray(rows) ? rows.filter(Boolean) : [];
+  if (!list.length) return '';
+  const token = `${Date.now().toString(36)}-${crypto.randomBytes(6).toString('hex')}`;
+  const expiresAt = Date.now() + DELETE_UNDO_TTL_MS;
+  const timer = setTimeout(() => {
+    const entry = deletedProfilesUndo.get(token);
+    if (!entry) return;
+    for (const item of entry.items) {
+      if (item && item.trashedPath && fs.existsSync(item.trashedPath)) {
+        try {
+          fs.rmSync(item.trashedPath, { recursive: true, force: true });
+        } catch (err) {
+          // ignore
+        }
+      }
+    }
+    deletedProfilesUndo.delete(token);
+  }, DELETE_UNDO_TTL_MS);
+  deletedProfilesUndo.set(token, { items: list, expiresAt, timer });
+  return token;
+}
+
+function consumeUndoDeleteBatch(token) {
+  const key = String(token || '');
+  if (!key) return null;
+  const entry = deletedProfilesUndo.get(key);
+  if (!entry) return null;
+  deletedProfilesUndo.delete(key);
+  if (entry.timer) clearTimeout(entry.timer);
+  if (Number(entry.expiresAt) < Date.now()) return null;
+  return entry;
+}
+
+function getIntegrationState() {
+  return {
+    registered: isRegistered(),
+    isDefault: Boolean(isDefaultBrowser()),
+    defaultProgIds: getDefaultBrowserProgIds()
+  };
+}
+
+function validateBrowserRule(ruleInput) {
+  const raw = ruleInput && typeof ruleInput === 'object' ? JSON.parse(JSON.stringify(ruleInput)) : null;
+  if (!raw || typeof raw.id !== 'string') return { ok: false, error: 'invalid-rule' };
+  const id = raw.id.trim();
+  if (!id) return { ok: false, error: 'missing-id' };
+  if (!raw.exeCandidates || typeof raw.exeCandidates !== 'object') raw.exeCandidates = {};
+  if (!Array.isArray(raw.exeCandidates.win32)) raw.exeCandidates.win32 = [];
+  raw.exeCandidates.win32 = raw.exeCandidates.win32.map((item) => String(item || '').trim()).filter(Boolean);
+  raw.type = raw.type === 'firefox' ? 'firefox' : 'chromium';
+  const current = JSON.parse(JSON.stringify(loadConfig()));
+  if (!Array.isArray(current.customBrowsers)) current.customBrowsers = [];
+  const idx = current.customBrowsers.findIndex((item) => item && item.id === id);
+  if (idx >= 0) current.customBrowsers[idx] = raw;
+  else current.customBrowsers.push(raw);
+  const rules = getRulesForConfig(current);
+  const execPath = detectExecutable(id, '', rules);
+  const profiles = detectProfiles(id, { avatarPreference: current.avatarPreference, rules });
+  const profileList = Array.isArray(profiles)
+    ? profiles.map((profile) => ({
+        id: profile && profile.id ? String(profile.id) : '',
+        name: profile && profile.name ? String(profile.name) : '',
+        hasAvatar: Boolean(profile && profile.avatarData)
+      }))
+    : [];
+  const avatarDetected = profileList.filter((item) => item.hasAvatar).length;
+  return {
+    ok: true,
+    canLaunch: Boolean(execPath),
+    executablePath: execPath || '',
+    profileCount: profileList.length,
+    avatarDetected,
+    profiles: profileList.slice(0, 30)
+  };
 }
 
 async function getExeIconDataUrl(exePath, index) {
@@ -394,12 +486,14 @@ ipcMain.handle('get-state', async () => {
   const config = scanBuiltInBrowsers(baseConfig);
   const locale = resolveLocale(config.locale);
   const dict = loadLocale(locale);
+  const integration = getIntegrationState();
   return {
     config,
     locale,
     dict,
     debugOverride: isDebugOverride(),
-    browserRegistered: isRegistered(),
+    integration,
+    browserRegistered: integration.registered,
     theme: getThemePayload(),
     browserRules: getBaseBrowserRules(),
     browserIcons: await getBrowserIcons(config)
@@ -445,6 +539,10 @@ ipcMain.handle('scan-browsers', () => {
   const next = scanBuiltInBrowsers(config);
   saveConfig(next);
   return next;
+});
+
+ipcMain.handle('validate-browser-rule', (_event, payload) => {
+  return validateBrowserRule(payload && payload.rule ? payload.rule : payload);
 });
 
 ipcMain.handle('manager-scan', async () => {
@@ -498,21 +596,34 @@ ipcMain.handle('manager-hide-profiles', (_event, payload) => {
 ipcMain.handle('manager-delete-profiles', (_event, payload) => {
   const items = Array.isArray(payload && payload.items) ? payload.items : [];
   const deleted = [];
+  const trashRoot = getTrashProfilesDir();
   for (const item of items) {
     const browserId = item && typeof item.browserId === 'string' ? item.browserId : '';
     const profileId = item && typeof item.profileId === 'string' ? item.profileId : '';
     if (!browserId || !profileId) continue;
     if (browserId === 'firefox') {
       const root = getFirefoxProfilesRoot(profileId);
-      const result = deleteProfileDir({ rootDir: root, profileDir: profileId });
-      deleted.push({ browserId, profileId, ok: Boolean(result && result.ok) });
+      const result = deleteProfileDir({ rootDir: root, profileDir: profileId, trashRoot });
+      deleted.push({
+        browserId,
+        profileId,
+        ok: Boolean(result && result.ok),
+        originalPath: result && result.originalPath ? result.originalPath : '',
+        trashedPath: result && result.trashedPath ? result.trashedPath : ''
+      });
       continue;
     }
     const rules = getRulesForConfig(loadConfig());
     const root = resolveProfileFolder(browserId, '', rules);
     const dir = resolveProfileFolder(browserId, profileId, rules);
-    const result = deleteProfileDir({ rootDir: root, profileDir: dir });
-    deleted.push({ browserId, profileId, ok: Boolean(result && result.ok) });
+    const result = deleteProfileDir({ rootDir: root, profileDir: dir, trashRoot });
+    deleted.push({
+      browserId,
+      profileId,
+      ok: Boolean(result && result.ok),
+      originalPath: result && result.originalPath ? result.originalPath : '',
+      trashedPath: result && result.trashedPath ? result.trashedPath : ''
+    });
   }
 
   const current = loadConfig();
@@ -530,7 +641,50 @@ ipcMain.handle('manager-delete-profiles', (_event, payload) => {
 
   const scanned = scanBuiltInBrowsers(next);
   saveConfig(scanned);
-  return { ok: deleted.some((d) => d.ok), deleted, config: scanned };
+  const undoItems = deleted
+    .filter((item) => item.ok && item.originalPath && item.trashedPath)
+    .map((item) => ({
+      browserId: item.browserId,
+      profileId: item.profileId,
+      originalPath: item.originalPath,
+      trashedPath: item.trashedPath
+    }));
+  const undoToken = storeUndoDeleteBatch(undoItems);
+  return { ok: deleted.some((d) => d.ok), deleted, config: scanned, undoToken };
+});
+
+ipcMain.handle('manager-undo-delete', (_event, payload) => {
+  const token = payload && typeof payload.token === 'string' ? payload.token : '';
+  const batch = consumeUndoDeleteBatch(token);
+  if (!batch || !Array.isArray(batch.items) || !batch.items.length) {
+    return { ok: false, error: 'missing-undo' };
+  }
+  const restored = [];
+  for (const item of batch.items) {
+    const browserId = item && item.browserId ? String(item.browserId) : '';
+    const profileId = item && item.profileId ? String(item.profileId) : '';
+    const originalPath = item && item.originalPath ? String(item.originalPath) : '';
+    const trashedPath = item && item.trashedPath ? String(item.trashedPath) : '';
+    if (!browserId || !profileId || !originalPath || !trashedPath) continue;
+    const rules = getRulesForConfig(loadConfig());
+    const root =
+      browserId === 'firefox'
+        ? getFirefoxProfilesRoot(originalPath)
+        : resolveProfileFolder(browserId, '', rules);
+    if (!root) continue;
+    const result = restoreProfileDir({ rootDir: root, originalPath, trashedPath });
+    restored.push({ browserId, profileId, ok: Boolean(result && result.ok) });
+  }
+  const next = JSON.parse(JSON.stringify(loadConfig()));
+  for (const item of restored.filter((row) => row.ok)) {
+    const browser = next.browsers && next.browsers[item.browserId] ? next.browsers[item.browserId] : null;
+    if (!browser) continue;
+    if (!Array.isArray(browser.excludedProfiles)) browser.excludedProfiles = [];
+    browser.excludedProfiles = browser.excludedProfiles.filter((id) => id !== item.profileId);
+  }
+  const scanned = scanBuiltInBrowsers(next);
+  saveConfig(scanned);
+  return { ok: restored.some((row) => row.ok), restored, config: scanned };
 });
 
 ipcMain.handle('manager-duplicate-profile', (_event, payload) => {
@@ -681,8 +835,9 @@ ipcMain.handle('reveal-path', async (_event, targetPath) => {
 });
 
 ipcMain.handle('pick-executable', async () => {
+  const locale = resolveLocale(loadConfig().locale);
   const result = await dialog.showOpenDialog({
-    title: 'Pick executable',
+    title: t(locale, 'dialog.pickExecutable'),
     properties: ['openFile']
   });
   if (result.canceled || result.filePaths.length === 0) return '';
@@ -690,8 +845,9 @@ ipcMain.handle('pick-executable', async () => {
 });
 
 ipcMain.handle('pick-folder', async () => {
+  const locale = resolveLocale(loadConfig().locale);
   const result = await dialog.showOpenDialog({
-    title: 'Pick folder',
+    title: t(locale, 'dialog.pickFolder'),
     properties: ['openDirectory']
   });
   if (result.canceled || result.filePaths.length === 0) return '';
@@ -746,9 +902,10 @@ function handleOpenInBrowser({ browserId, profileId, target, browserPath }) {
     saveConfig(next);
   }
   if (!ok) {
+    const locale = resolveLocale(config.locale);
     dialog.showMessageBox({
       type: 'error',
-      message: 'Failed to open in the selected browser.'
+      message: t(locale, 'errors.openFailed')
     });
   }
   return { ok };
@@ -1121,7 +1278,7 @@ ipcMain.handle('unregister-browser', () => {
 });
 
 ipcMain.handle('check-browser', () => {
-  return { registered: isRegistered() };
+  return getIntegrationState();
 });
 
 

@@ -239,3 +239,12 @@
   justify-content: flex-end;
   gap: 10px;
 }
+
+.chooser-empty {
+  display: grid;
+  gap: 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 10px;
+  background: color-mix(in srgb, var(--panel) 80%, transparent);
+}

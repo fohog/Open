@@ -36,6 +36,10 @@ const systemBrowserIds = Object.keys(loadBrowserDefaults());
 
 const defaultConfig = {
   locale: '',
+  onboarding: {
+    completed: false,
+    completedAt: 0
+  },
   debug: {
     showAllBrowsers: false
   },
@@ -84,8 +88,9 @@ function deepMerge(target, source) {
 function loadConfig() {
   if (cachedConfig) return cachedConfig;
   const configPath = getConfigPath();
+  const hasConfigFile = fs.existsSync(configPath);
   let config = JSON.parse(JSON.stringify(defaultConfig));
-  if (fs.existsSync(configPath)) {
+  if (hasConfigFile) {
     try {
       const raw = fs.readFileSync(configPath, 'utf-8');
       const parsed = JSON.parse(raw);
@@ -119,6 +124,19 @@ function loadConfig() {
   }
   if (!config.systemBrowsers || typeof config.systemBrowsers !== 'object') {
     config.systemBrowsers = {};
+  }
+  if (!config.onboarding || typeof config.onboarding !== 'object') {
+    config.onboarding = {
+      completed: hasConfigFile,
+      completedAt: 0
+    };
+  } else {
+    config.onboarding.completed = Boolean(config.onboarding.completed);
+    config.onboarding.completedAt = Number(config.onboarding.completedAt) || 0;
+    if (!hasConfigFile) {
+      config.onboarding.completed = false;
+      config.onboarding.completedAt = 0;
+    }
   }
   if (config.window) delete config.window;
   cachedConfig = config;

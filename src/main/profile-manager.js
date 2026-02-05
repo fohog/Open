@@ -142,14 +142,45 @@ function renameChromiumProfile({ userDataDir, profileId, name }) {
   return { ok };
 }
 
-function deleteProfileDir({ rootDir, profileDir }) {
+function deleteProfileDir({ rootDir, profileDir, trashRoot = '' }) {
   const base = normalize(rootDir);
   const target = normalize(profileDir);
   if (!base || !target) return { ok: false, error: 'missing-path' };
   if (!pathExists(target)) return { ok: true };
   if (!isSubPath(base, target)) return { ok: false, error: 'invalid-target' };
-  fs.rmSync(target, { recursive: true, force: true });
-  return { ok: true };
+  const trashBase = normalize(trashRoot);
+  if (!trashBase) {
+    fs.rmSync(target, { recursive: true, force: true });
+    return { ok: true };
+  }
+  fs.mkdirSync(trashBase, { recursive: true });
+  const token = `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
+  const trashPath = path.join(trashBase, `${path.basename(target)}-${token}`);
+  try {
+    fs.renameSync(target, trashPath);
+  } catch (err) {
+    fs.cpSync(target, trashPath, { recursive: true, force: true, errorOnExist: false });
+    fs.rmSync(target, { recursive: true, force: true });
+  }
+  return { ok: true, trashedPath: trashPath, originalPath: target };
+}
+
+function restoreProfileDir({ rootDir, originalPath, trashedPath }) {
+  const base = normalize(rootDir);
+  const original = normalize(originalPath);
+  const trashed = normalize(trashedPath);
+  if (!base || !original || !trashed) return { ok: false, error: 'missing-path' };
+  if (!isSubPath(base, original)) return { ok: false, error: 'invalid-target' };
+  if (!pathExists(trashed)) return { ok: false, error: 'missing-trash-path' };
+  if (pathExists(original)) return { ok: false, error: 'target-exists' };
+  fs.mkdirSync(path.dirname(original), { recursive: true });
+  try {
+    fs.renameSync(trashed, original);
+  } catch (err) {
+    fs.cpSync(trashed, original, { recursive: true, force: true, errorOnExist: false });
+    fs.rmSync(trashed, { recursive: true, force: true });
+  }
+  return { ok: true, restoredPath: original };
 }
 
 function parseIni(content) {
@@ -446,6 +477,7 @@ module.exports = {
   duplicateChromiumProfile,
   renameChromiumProfile,
   deleteProfileDir,
+  restoreProfileDir,
   duplicateFirefoxProfile,
   renameFirefoxProfile,
   readChromiumBookmarks,

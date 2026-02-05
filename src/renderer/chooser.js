@@ -89,8 +89,15 @@ function isLastUsed(browserId, profileId) {
 }
 
 function getBrowserIds() {
-  const ids = tabOrder.filter((id) => config.browsers && config.browsers[id]);
-  return ids.filter(isBrowserVisible);
+  const all = config && config.browsers ? Object.keys(config.browsers) : [];
+  const ordered = [];
+  tabOrder.forEach((id) => {
+    if (all.includes(id) && !ordered.includes(id)) ordered.push(id);
+  });
+  all.forEach((id) => {
+    if (!ordered.includes(id)) ordered.push(id);
+  });
+  return ordered.filter(isBrowserVisible);
 }
 
 function renderTabs() {
@@ -98,6 +105,7 @@ function renderTabs() {
   tabs.innerHTML = '';
 
   const browserIds = getBrowserIds();
+  if (!browserIds.includes(activeTab)) activeTab = browserIds[0] || '';
   const tabIds = [...browserIds];
 
   tabIds.forEach((tabId) => {
@@ -142,6 +150,27 @@ function renderTabs() {
     });
     tabs.appendChild(tab);
   });
+}
+
+function renderEmptyState() {
+  const wrap = document.createElement('div');
+  wrap.className = 'notice chooser-empty';
+  const text = document.createElement('div');
+  text.textContent = t('chooser.empty.guide');
+  const actions = document.createElement('div');
+  actions.className = 'inline-actions';
+  const btn = document.createElement('button');
+  btn.type = 'button';
+  btn.className = 'button secondary';
+  btn.textContent = t('chooser.empty.openSettings');
+  btn.addEventListener('click', async () => {
+    await window.api.showSettings();
+    window.api.closeChooser();
+  });
+  actions.appendChild(btn);
+  wrap.appendChild(text);
+  wrap.appendChild(actions);
+  return wrap;
 }
 
 function renderBrowserOptions(browserId) {
@@ -274,6 +303,11 @@ function matchesSearch(profile, query) {
 function renderTabContent() {
   const content = document.getElementById('tab-content');
   content.innerHTML = '';
+  const browserIds = getBrowserIds();
+  if (!browserIds.length || !activeTab) {
+    content.appendChild(renderEmptyState());
+    return;
+  }
   content.appendChild(renderBrowserOptions(activeTab));
 }
 
@@ -619,13 +653,24 @@ window.api.onProfileMenuAction(async (data) => {
     return;
   }
   if (action === 'delete') {
-    const confirmMsg = t('manager.deleteConfirm');
+    const confirmMsg = t('manager.deleteConfirmDetailed');
     if (!window.confirm(confirmMsg)) return;
     const result = await window.api.deleteProfiles({ items: [{ browserId, profileId }] });
     if (result && result.ok) {
       config = result.config || config;
       renderTabs();
       renderTabContent();
+      if (result.undoToken) {
+        const shouldUndo = window.confirm(t('manager.undo.ask'));
+        if (shouldUndo) {
+          const undone = await window.api.undoDeleteProfiles({ token: result.undoToken });
+          if (undone && undone.ok) {
+            config = undone.config || config;
+            renderTabs();
+            renderTabContent();
+          }
+        }
+      }
     }
   }
 });
@@ -651,6 +696,9 @@ window.api.onBrowserMenuAction(async (data) => {
   }
   if (action === 'disable') {
     if (!browser) return;
+    const name = (browser.displayName || browserId || '').trim() || browserId;
+    const ok = window.confirm(t('chooser.browserDisableConfirm').replace('{name}', name));
+    if (!ok) return;
     browser.enabled = false;
     config.browsers[browserId].enabled = false;
     await window.api.saveConfig(config);
@@ -678,7 +726,7 @@ window.api.onInit((payload) => {
 
 window.api.onBlur(() => {
   if (!config || config.closeChooserOnBlur === false) return;
-  if (!config.debug || !config.debug.showAllBrowsers) {
+  if (!(debugOverride || (config.debug && config.debug.showAllBrowsers))) {
     window.api.closeChooser();
   }
 });

@@ -250,3 +250,111 @@
   background: transparent;
   padding: 0;
 }
+
+.status.success {
+  color: var(--accent);
+}
+
+.status.danger {
+  color: var(--danger);
+}
+
+.rule-validation {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 10px;
+  background: color-mix(in srgb, var(--panel-2) 25%, transparent);
+  display: grid;
+  gap: 8px;
+}
+
+.rule-validation-list {
+  display: grid;
+  gap: 5px;
+}
+
+.rule-validation-row {
+  font-size: 14px;
+  color: var(--muted);
+}
+
+.onboarding-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+  background: transparent;
+  padding: 0;
+  display: flex;
+  align-items: stretch;
+  justify-content: stretch;
+}
+
+.onboarding-overlay.hidden {
+  display: none;
+}
+
+.onboarding-card {
+  width: 100%;
+  height: 100%;
+  overflow: auto;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  padding: 15px;
+  display: grid;
+  gap: 12px;
+}
+
+.onboarding-pages {
+  display: grid;
+  gap: 10px;
+  align-content: start;
+}
+
+.onboarding-page.hidden {
+  display: none;
+}
+
+.onboarding-preview {
+  width: 100%;
+  height: 360px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--panel);
+}
+
+.onboarding-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.onboarding-actions .hidden {
+  display: none;
+}
+
+.onboarding-browser-list {
+  display: grid;
+  gap: 8px;
+  max-height: 300px;
+  overflow: auto;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 8px;
+  background: color-mix(in srgb, var(--panel) 70%, transparent);
+}
+
+.onboarding-browser-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 8px 10px;
+}
+
+body.onboarding-active .titlebar,
+body.onboarding-active #app > .settings-layout {
+  display: none;
+}

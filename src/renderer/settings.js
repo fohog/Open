@@ -2,13 +2,15 @@ let state = null;
 let dict = {};
 let config = null;
 let debugOverride = false;
-let browserRegistered = false;
+let integrationState = { registered: false, isDefault: false, defaultProgIds: { http: '', https: '' } };
 let expandBrowserId = '';
 let browserRules = [];
 let browserIcons = {};
 let customDialogResolver = null;
 const enhancedSelects = new WeakMap();
 let selectDocListenerBound = false;
+let onboardingStep = 0;
+const onboardingTotalSteps = 5;
 
 function closeAllSelectMenus() {
   document.querySelectorAll('.select.open').forEach((node) => node.classList.remove('open'));
@@ -200,6 +202,71 @@ function formatList(list) {
   return Array.isArray(list) ? list.filter(Boolean).join('\n') : '';
 }
 
+function getBuiltInBrowserIds() {
+  return new Set((Array.isArray(browserRules) ? browserRules : []).map((rule) => (rule && rule.id ? rule.id : '')).filter(Boolean));
+}
+
+function isCustomBrowserIdTaken(id) {
+  const value = String(id || '').trim();
+  if (!value) return false;
+  const builtIn = getBuiltInBrowserIds();
+  if (builtIn.has(value)) return true;
+  const custom = Array.isArray(config && config.customBrowsers) ? config.customBrowsers : [];
+  return custom.some((item) => item && item.id === value);
+}
+
+function renderValidationResult(result, summaryNode, listNode) {
+  if (!summaryNode || !listNode) return;
+  listNode.innerHTML = '';
+  if (!result || result.ok === false) {
+    summaryNode.textContent = t('settings.custom.validate.invalidRule');
+    summaryNode.className = 'status danger';
+    return;
+  }
+  const canLaunch = Boolean(result.canLaunch);
+  const profileCount = Number(result.profileCount) || 0;
+  const avatarDetected = Number(result.avatarDetected) || 0;
+  summaryNode.textContent = canLaunch
+    ? t('settings.custom.validate.launchOk')
+    : t('settings.custom.validate.launchFailed');
+  summaryNode.className = `status ${canLaunch ? 'success' : 'danger'}`;
+  const details = [
+    `${t('settings.custom.validate.executable')}: ${result.executablePath || t('manager.none')}`,
+    `${t('settings.custom.validate.profiles')}: ${profileCount}`,
+    `${t('settings.custom.validate.avatars')}: ${avatarDetected}/${profileCount}`
+  ];
+  details.forEach((line) => {
+    const row = document.createElement('div');
+    row.className = 'rule-validation-row';
+    row.textContent = line;
+    listNode.appendChild(row);
+  });
+  const profiles = Array.isArray(result.profiles) ? result.profiles : [];
+  profiles.slice(0, 8).forEach((profile) => {
+    const row = document.createElement('div');
+    row.className = 'rule-validation-row';
+    const name = profile && (profile.name || profile.id) ? String(profile.name || profile.id) : t('manager.unknown');
+    row.textContent = `${name} (${profile && profile.hasAvatar ? t('settings.custom.validate.avatarYes') : t('settings.custom.validate.avatarNo')})`;
+    listNode.appendChild(row);
+  });
+}
+
+async function validateRuleFromFields(fields, id, summaryNode, listNode) {
+  const ruleId = String(id || '').trim();
+  if (!ruleId) {
+    if (summaryNode) {
+      summaryNode.textContent = t('settings.custom.idPrompt');
+      summaryNode.className = 'status danger';
+    }
+    if (listNode) listNode.innerHTML = '';
+    return { ok: false };
+  }
+  const rule = buildRuleFromForm(fields, ruleId);
+  const result = await window.api.validateBrowserRule(rule);
+  renderValidationResult(result, summaryNode, listNode);
+  return result;
+}
+
 function buildRuleFromForm(fields, id) {
   const rule = {
     id,
@@ -256,17 +323,27 @@ function updateIntegrationUI() {
   const status = document.getElementById('integration-status');
   const registerBtn = document.getElementById('integration-register');
   const unregisterBtn = document.getElementById('integration-unregister');
-  const regText = browserRegistered ? t('settings.integration.registered') : t('settings.integration.unregistered');
+  if (!status || !registerBtn || !unregisterBtn) return;
+  const registered = Boolean(integrationState && integrationState.registered);
+  const isDefault = Boolean(integrationState && integrationState.isDefault);
+  let regText = registered ? t('settings.integration.registered') : t('settings.integration.unregistered');
+  if (registered && isDefault) regText = t('settings.integration.status.default');
+  else if (registered && !isDefault) regText = t('settings.integration.status.registeredOnly');
   status.textContent = regText;
-  registerBtn.style.display = browserRegistered ? 'none' : '';
-  unregisterBtn.style.display = browserRegistered ? '' : 'none';
+  registerBtn.style.display = registered ? 'none' : '';
+  unregisterBtn.style.display = registered ? '' : 'none';
   updateRoutingUI();
+  updateOnboardingIntegrationStatus();
 }
 
 async function refreshIntegrationState() {
   const result = await window.api.checkBrowser();
   if (!result) return;
-  browserRegistered = Boolean(result.registered);
+  integrationState = {
+    registered: Boolean(result.registered),
+    isDefault: Boolean(result.isDefault),
+    defaultProgIds: result.defaultProgIds || { http: '', https: '' }
+  };
   updateIntegrationUI();
 }
 
@@ -302,6 +379,8 @@ async function registerSystemBrowser() {
   if (result && result.ok) {
     await refreshIntegrationState();
     setStatus(t('settings.status.saved'));
+  } else {
+    setStatus(t('settings.status.failed'));
   }
 }
 
@@ -310,6 +389,8 @@ async function unregisterSystemBrowser() {
   if (result && result.ok) {
     await refreshIntegrationState();
     setStatus(t('settings.status.saved'));
+  } else {
+    setStatus(t('settings.status.failed'));
   }
 }
 
@@ -544,12 +625,38 @@ function renderBrowsers() {
     const exeLabel = document.createElement('div');
     exeLabel.className = 'section-desc';
     exeLabel.textContent = t('settings.browsers.rule.exe');
-    const exeInput = document.createElement('textarea');
-    exeInput.className = 'input rule-input';
-    exeInput.value = formatList(mergedRule.exeCandidates && mergedRule.exeCandidates.win32);
-    exeField.appendChild(exeLabel);
-    exeField.appendChild(exeInput);
-    form.appendChild(exeField);
+	    const exeInput = document.createElement('textarea');
+	    exeInput.className = 'input rule-input';
+	    exeInput.value = formatList(mergedRule.exeCandidates && mergedRule.exeCandidates.win32);
+	    exeField.appendChild(exeLabel);
+	    exeField.appendChild(exeInput);
+	    form.appendChild(exeField);
+
+	    const userDataField = document.createElement('div');
+	    userDataField.className = 'rule-field';
+	    const userDataLabel = document.createElement('div');
+	    userDataLabel.className = 'section-desc';
+	    userDataLabel.textContent = t('settings.custom.add.userData');
+	    const userDataActions = document.createElement('div');
+	    userDataActions.className = 'inline-actions';
+	    const userDataInput = document.createElement('textarea');
+	    userDataInput.className = 'input rule-input';
+	    userDataInput.value = formatList(mergedRule.userDataDir && mergedRule.userDataDir.win32);
+	    const userDataPick = document.createElement('button');
+	    userDataPick.type = 'button';
+	    userDataPick.className = 'button secondary';
+	    userDataPick.textContent = t('settings.custom.add.userDataPick');
+	    userDataPick.addEventListener('click', async () => {
+	      const picked = await window.api.pickFolder();
+	      if (!picked) return;
+	      userDataInput.value = picked;
+	      userDataInput.dispatchEvent(new Event('change', { bubbles: true }));
+	    });
+	    userDataActions.appendChild(userDataInput);
+	    userDataActions.appendChild(userDataPick);
+	    userDataField.appendChild(userDataLabel);
+	    userDataField.appendChild(userDataActions);
+	    form.appendChild(userDataField);
 
     const launchRow = document.createElement('div');
     launchRow.className = 'rule-row';
@@ -644,11 +751,10 @@ function renderBrowsers() {
     avatarsRow.appendChild(avatarsExtField);
     form.appendChild(avatarsRow);
 
-    const userDataInput = null;
-    const fields = {
-      name: nameInput,
-      type: typeSelect,
-      exe: exeInput,
+	    const fields = {
+	      name: nameInput,
+	      type: typeSelect,
+	      exe: exeInput,
       userData: userDataInput,
       profileArg: profileArgInput,
       profileArgName: profileArgNameInput,
@@ -656,22 +762,68 @@ function renderBrowsers() {
       pictureFiles: pictureInput,
       iconFiles: iconInput,
       avatarsDir: avatarsDirInput,
-      avatarsExt: avatarsExtInput
-    };
+	      avatarsExt: avatarsExtInput
+	    };
 
-    function saveRule() {
-      const rule = buildRuleFromForm(fields, browserId);
-      const list = Array.isArray(config.customBrowsers) ? config.customBrowsers : [];
-      rule.id = browserId;
-      list[customIndex] = rule;
-      config.customBrowsers = list;
-      ensureBrowserConfig(browserId, rule.name || browserId);
-      saveAndRescan(t('settings.status.saved'));
-    }
+	    const chromiumOnlyNodes = [
+	      userDataField,
+	      launchRow,
+	      profileArgPathField,
+	      imageRow,
+	      avatarsRow
+	    ];
 
-    Object.values(fields).forEach((input) => {
-      input.addEventListener('change', saveRule);
-    });
+	    function syncRuleTypeUI() {
+	      const isChromium = typeSelect.value !== 'firefox';
+	      chromiumOnlyNodes.forEach((node) => {
+	        if (!node) return;
+	        node.style.display = isChromium ? '' : 'none';
+	      });
+	    }
+	    syncRuleTypeUI();
+
+	    const validationWrap = document.createElement('div');
+	    validationWrap.className = 'rule-validation';
+	    const validationActions = document.createElement('div');
+	    validationActions.className = 'inline-actions';
+	    const validateBtn = document.createElement('button');
+	    validateBtn.type = 'button';
+	    validateBtn.className = 'button secondary';
+	    validateBtn.textContent = t('settings.custom.validate.action');
+	    const validationSummary = document.createElement('div');
+	    validationSummary.className = 'status';
+	    validationSummary.textContent = t('settings.custom.validate.pending');
+	    validationActions.appendChild(validateBtn);
+	    validationActions.appendChild(validationSummary);
+	    const validationList = document.createElement('div');
+	    validationList.className = 'rule-validation-list';
+	    validationWrap.appendChild(validationActions);
+	    validationWrap.appendChild(validationList);
+	    form.appendChild(validationWrap);
+
+	    function saveRule() {
+	      const rule = buildRuleFromForm(fields, browserId);
+	      const list = Array.isArray(config.customBrowsers) ? config.customBrowsers : [];
+	      rule.id = browserId;
+	      list[customIndex] = rule;
+	      config.customBrowsers = list;
+	      ensureBrowserConfig(browserId, rule.name || browserId);
+	      saveAndRescan(t('settings.status.saved'));
+	    }
+
+	    validateBtn.addEventListener('click', async () => {
+	      validationSummary.textContent = t('settings.custom.validate.pending');
+	      validationSummary.className = 'status';
+	      await validateRuleFromFields(fields, browserId, validationSummary, validationList);
+	    });
+	
+	    Object.values(fields).forEach((input) => {
+	      input.addEventListener('change', saveRule);
+	    });
+	    typeSelect.addEventListener('change', () => {
+	      syncRuleTypeUI();
+	    });
+	    void validateRuleFromFields(fields, browserId, validationSummary, validationList);
 
       body.appendChild(form);
       item.appendChild(body);
@@ -708,6 +860,9 @@ function openCustomBrowserDialog() {
   const exeInput = document.getElementById('custom-browser-exe');
   const userDataInput = document.getElementById('custom-browser-userdata');
   const userDataPick = document.getElementById('custom-browser-userdata-pick');
+  const validateBtn = document.getElementById('custom-browser-validate');
+  const validationSummary = document.getElementById('custom-browser-validation-summary');
+  const validationList = document.getElementById('custom-browser-validation-list');
   if (!dialog || !idInput || !nameInput || !typeSelect || !exeInput) {
     return Promise.resolve(null);
   }
@@ -723,10 +878,49 @@ function openCustomBrowserDialog() {
       if (picked) userDataInput.value = picked;
     };
   }
+  const fields = {
+    name: nameInput,
+    type: typeSelect,
+    exe: exeInput,
+    userData: userDataInput || { value: '' },
+    profileArg: { value: '--profile-directory={profileId}' },
+    profileArgName: { value: '' },
+    profileArgPath: { value: '' },
+    pictureFiles: { value: 'Profile Picture.png' },
+    iconFiles: { value: 'Profile Picture.ico' },
+    avatarsDir: { value: 'Avatars' },
+    avatarsExt: { value: '.png\n.jpg\n.jpeg\n.ico' }
+  };
+  if (validationSummary) {
+    validationSummary.textContent = t('settings.custom.validate.pending');
+    validationSummary.className = 'status';
+  }
+  if (validationList) validationList.innerHTML = '';
+  if (validateBtn) {
+    validateBtn.onclick = async () => {
+      await validateRuleFromFields(fields, idInput.value.trim(), validationSummary, validationList);
+    };
+  }
   dialog.showModal();
   return new Promise((resolve) => {
     customDialogResolver = resolve;
   });
+}
+
+async function addCustomBrowserFlow() {
+  const result = await openCustomBrowserDialog();
+  if (!result) return false;
+  const trimmed = result.id;
+  if (isCustomBrowserIdTaken(trimmed)) {
+    setStatus(t('settings.custom.exists'));
+    return false;
+  }
+  const list = Array.isArray(config.customBrowsers) ? config.customBrowsers : [];
+  list.push(result.rule);
+  config.customBrowsers = list;
+  ensureBrowserConfig(trimmed, result.rule.name || trimmed);
+  await saveAndRescan(t('settings.status.saved'));
+  return true;
 }
 
 function bindControlToggles() {
@@ -823,12 +1017,241 @@ function initSidebar() {
   }
 }
 
+function updateOnboardingIntegrationStatus() {
+  const node = document.getElementById('onboarding-integration-status');
+  if (!node) return;
+  const registered = Boolean(integrationState && integrationState.registered);
+  const isDefault = Boolean(integrationState && integrationState.isDefault);
+  if (registered && isDefault) node.textContent = t('settings.integration.status.default');
+  else if (registered) node.textContent = t('settings.integration.status.registeredOnly');
+  else node.textContent = t('settings.integration.unregistered');
+}
+
+function renderOnboardingBrowserList() {
+  const list = document.getElementById('onboarding-browser-list');
+  if (!list) return;
+  list.innerHTML = '';
+  const ids = getBrowserIds();
+  const builtIn = getBuiltInBrowserIds();
+  if (!ids.length) {
+    const empty = document.createElement('div');
+    empty.className = 'notice';
+    empty.textContent = t('settings.browsers.empty');
+    list.appendChild(empty);
+    return;
+  }
+  ids.forEach((id) => {
+    const browser = config.browsers && config.browsers[id] ? config.browsers[id] : null;
+    if (!browser) return;
+    const row = document.createElement('div');
+    row.className = 'onboarding-browser-item';
+    const name = document.createElement('span');
+    name.textContent = browser.displayName || id;
+    const toggleWrap = document.createElement('label');
+    toggleWrap.className = 'toggle';
+    const toggle = document.createElement('input');
+    toggle.type = 'checkbox';
+    if (builtIn.has(id)) {
+      ensureSystemBrowserState(id);
+      toggle.checked = config.systemBrowsers[id].enabled !== false;
+      toggle.addEventListener('change', async () => {
+        config.systemBrowsers[id].enabled = toggle.checked;
+        if (config.browsers[id]) config.browsers[id].enabled = toggle.checked;
+        await window.api.saveConfig(config);
+        renderBrowsers();
+      });
+    } else {
+      ensureBrowserConfig(id, browser.displayName || id);
+      toggle.checked = config.browsers[id].enabled !== false;
+      toggle.addEventListener('change', async () => {
+        config.browsers[id].enabled = toggle.checked;
+        await window.api.saveConfig(config);
+        renderBrowsers();
+      });
+    }
+    toggleWrap.appendChild(toggle);
+    row.appendChild(name);
+    row.appendChild(toggleWrap);
+    list.appendChild(row);
+  });
+}
+
+function updateOnboardingStepUI() {
+  const overlay = document.getElementById('onboarding-overlay');
+  if (!overlay) return;
+  const pages = Array.from(overlay.querySelectorAll('.onboarding-page'));
+  pages.forEach((page, index) => {
+    page.classList.toggle('hidden', index !== onboardingStep);
+  });
+  const indicator = document.getElementById('onboarding-step-indicator');
+  if (indicator) indicator.textContent = `${onboardingStep + 1}/${onboardingTotalSteps}`;
+  const back = document.getElementById('onboarding-back');
+  const next = document.getElementById('onboarding-next');
+  const finish = document.getElementById('onboarding-finish');
+  if (back) back.disabled = onboardingStep === 0;
+  if (next) next.classList.toggle('hidden', onboardingStep >= onboardingTotalSteps - 1);
+  if (finish) finish.classList.toggle('hidden', onboardingStep < onboardingTotalSteps - 1);
+}
+
+function syncOnboardingFields() {
+  const language = document.getElementById('onboarding-language-select');
+  const effect = document.getElementById('onboarding-window-effect');
+  const inputMode = document.getElementById('onboarding-input-mode');
+  const columns = document.getElementById('onboarding-columns');
+  if (language) {
+    language.value = config.locale || 'en-US';
+    syncEnhancedSelect(language);
+  }
+  if (effect) {
+    const allowed = ['mica', 'acrylic', 'tabbed'];
+    effect.value = allowed.includes(config.windowEffect) ? config.windowEffect : 'mica';
+    syncEnhancedSelect(effect);
+  }
+  if (inputMode) {
+    inputMode.value = ['link', 'search', 'hidden'].includes(config.chooserInputMode) ? config.chooserInputMode : 'link';
+    syncEnhancedSelect(inputMode);
+  }
+  if (columns) {
+    const current = [1, 2, 3, 4].includes(Number(config.chooserColumns)) ? String(config.chooserColumns) : '2';
+    columns.value = current;
+    syncEnhancedSelect(columns);
+  }
+}
+
+function applyOnboardingFieldsToConfig() {
+  const language = document.getElementById('onboarding-language-select');
+  const effect = document.getElementById('onboarding-window-effect');
+  const inputMode = document.getElementById('onboarding-input-mode');
+  const columns = document.getElementById('onboarding-columns');
+  if (language) config.locale = language.value;
+  if (effect) {
+    const value = String(effect.value || '').toLowerCase();
+    config.windowEffect = ['mica', 'acrylic', 'tabbed'].includes(value) ? value : 'mica';
+  }
+  if (inputMode) config.chooserInputMode = ['link', 'search', 'hidden'].includes(inputMode.value) ? inputMode.value : 'link';
+  if (columns) {
+    const value = Number(columns.value);
+    config.chooserColumns = [1, 2, 3, 4].includes(value) ? value : 2;
+  }
+}
+
+async function closeOnboarding(markCompleted = true) {
+  const overlay = document.getElementById('onboarding-overlay');
+  if (!overlay) return;
+  const previousLocale = config.locale;
+  const previousEffect = config.windowEffect;
+  if (!config.onboarding || typeof config.onboarding !== 'object') config.onboarding = {};
+  if (markCompleted) {
+    applyOnboardingFieldsToConfig();
+    config.onboarding.completed = true;
+    config.onboarding.completedAt = Date.now();
+    await window.api.saveConfig(config);
+    if (previousEffect !== config.windowEffect) {
+      await window.api.setWindowEffect(config.windowEffect);
+    }
+  }
+  document.body.classList.remove('onboarding-active');
+  overlay.classList.add('hidden');
+  if (markCompleted && previousLocale !== config.locale) {
+    window.location.reload();
+  }
+}
+
+function bindOnboarding() {
+  const overlay = document.getElementById('onboarding-overlay');
+  if (!overlay) return;
+  const shouldShow = !(config && config.onboarding && config.onboarding.completed);
+  if (!shouldShow) {
+    document.body.classList.remove('onboarding-active');
+    overlay.classList.add('hidden');
+    return;
+  }
+  document.body.classList.add('onboarding-active');
+  overlay.classList.remove('hidden');
+  onboardingStep = 0;
+  syncOnboardingFields();
+  updateOnboardingIntegrationStatus();
+  renderOnboardingBrowserList();
+  updateOnboardingStepUI();
+
+  const back = document.getElementById('onboarding-back');
+  const next = document.getElementById('onboarding-next');
+  const skip = document.getElementById('onboarding-skip');
+  const finish = document.getElementById('onboarding-finish');
+  const scan = document.getElementById('onboarding-scan');
+  const addCustom = document.getElementById('onboarding-add-custom');
+  const register = document.getElementById('onboarding-register');
+  const defaults = document.getElementById('onboarding-open-defaults');
+
+  if (back) {
+    back.onclick = () => {
+      onboardingStep = Math.max(0, onboardingStep - 1);
+      updateOnboardingStepUI();
+    };
+  }
+  if (next) {
+    next.onclick = () => {
+      onboardingStep = Math.min(onboardingTotalSteps - 1, onboardingStep + 1);
+      updateOnboardingStepUI();
+    };
+  }
+  if (skip) {
+    skip.onclick = async () => {
+      await closeOnboarding(true);
+    };
+  }
+  if (finish) {
+    finish.onclick = async () => {
+      await closeOnboarding(true);
+    };
+  }
+  if (scan) {
+    scan.onclick = async () => {
+      const updated = await window.api.scanBrowsers();
+      if (updated) config = updated;
+      const refreshed = await window.api.getState();
+      if (refreshed && refreshed.config) {
+        config = refreshed.config;
+        integrationState = refreshed.integration || integrationState;
+      }
+      renderBrowsers();
+      renderOnboardingBrowserList();
+      updateOnboardingIntegrationStatus();
+    };
+  }
+  if (addCustom) {
+    addCustom.onclick = async () => {
+      const added = await addCustomBrowserFlow();
+      if (added) {
+        renderOnboardingBrowserList();
+      }
+    };
+  }
+  if (register) {
+    register.onclick = async () => {
+      await registerSystemBrowser();
+      await refreshIntegrationState();
+      updateOnboardingIntegrationStatus();
+    };
+  }
+  if (defaults) {
+    defaults.onclick = async () => {
+      await window.api.openSystemSettings('default-apps');
+    };
+  }
+}
+
 async function init() {
   state = await window.api.getState();
   config = state.config;
   dict = state.dict || {};
   debugOverride = Boolean(state.debugOverride);
-  browserRegistered = Boolean(state.browserRegistered);
+  const integration = state.integration || {};
+  integrationState = {
+    registered: Boolean(integration.registered || state.browserRegistered),
+    isDefault: Boolean(integration.isDefault),
+    defaultProgIds: integration.defaultProgIds || { http: '', https: '' }
+  };
   browserRules = Array.isArray(state.browserRules) ? state.browserRules : [];
   browserIcons = state.browserIcons || {};
 
@@ -939,6 +1362,7 @@ async function init() {
   }
 
   enhanceSelectsIn(document);
+  bindOnboarding();
 
   window.api.onEditBrowser((payload) => {
     const browserId = payload && payload.browserId ? String(payload.browserId) : '';
@@ -970,6 +1394,10 @@ async function init() {
         setStatus(t('settings.custom.idPrompt'));
         return;
       }
+      if (isCustomBrowserIdTaken(id)) {
+        setStatus(t('settings.custom.exists'));
+        return;
+      }
       const fields = {
         name: nameInput || { value: id },
         type: typeSelect || { value: 'chromium' },
@@ -984,12 +1412,22 @@ async function init() {
         avatarsExt: { value: '.png\n.jpg\n.jpeg\n.ico' }
       };
       const rule = buildRuleFromForm(fields, id);
-      customDialog.close();
-      if (customDialogResolver) {
-        const resolver = customDialogResolver;
-        customDialogResolver = null;
-        resolver({ id, rule });
-      }
+      const summaryNode = document.getElementById('custom-browser-validation-summary');
+      const listNode = document.getElementById('custom-browser-validation-list');
+      window.api.validateBrowserRule(rule).then((validation) => {
+        renderValidationResult(validation, summaryNode, listNode);
+        if (!validation || validation.ok === false) return;
+        if (!validation.canLaunch) {
+          const proceed = window.confirm(t('settings.custom.validate.continueOnFailure'));
+          if (!proceed) return;
+        }
+        customDialog.close();
+        if (customDialogResolver) {
+          const resolver = customDialogResolver;
+          customDialogResolver = null;
+          resolver({ id, rule, validation });
+        }
+      });
     });
     customDialog.addEventListener('cancel', () => {
       if (customDialogResolver) {
@@ -1061,18 +1499,7 @@ async function init() {
   const addCustomBtn = document.getElementById('add-custom-browser');
   if (addCustomBtn) {
     addCustomBtn.addEventListener('click', async () => {
-      const result = await openCustomBrowserDialog();
-      if (!result) return;
-      const trimmed = result.id;
-      const list = Array.isArray(config.customBrowsers) ? config.customBrowsers : [];
-      if (list.some((item) => item && item.id === trimmed)) {
-        setStatus(t('settings.custom.exists'));
-        return;
-      }
-      list.push(result.rule);
-      config.customBrowsers = list;
-      ensureBrowserConfig(trimmed, result.rule.name || trimmed);
-      saveAndRescan(t('settings.status.saved'));
+      await addCustomBrowserFlow();
     });
   }
 }
