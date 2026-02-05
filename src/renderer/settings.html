@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Open</title>
+  <link rel="stylesheet" href="main.css" />
+  <link rel="stylesheet" href="manager.css" />
+  <link rel="stylesheet" href="settings.css" />
+</head>
+
+<body>
+  <div class="titlebar">
+    <div class="titlebar-left">
+      <span class="fluent-icon" data-icon="app"></span>
+      <span class="titlebar-title" data-i18n="app.title"></span>
+    </div>
+  </div>
+  <div class="app" id="app">
+    <div class="settings-layout">
+      <div class="sidebar" id="sidebar">
+        <button class="sidebar-item active" type="button" data-target="section-appearance">
+          <span class="fluent-icon" data-icon="appearance"></span>
+          <span data-i18n="settings.appearance.title"></span>
+        </button>
+        <button class="sidebar-item" type="button" data-target="section-language">
+          <span class="fluent-icon" data-icon="language"></span>
+          <span data-i18n="settings.language.title"></span>
+        </button>
+        <button class="sidebar-item" type="button" data-target="section-integration">
+          <span class="fluent-icon" data-icon="shield"></span>
+          <span data-i18n="settings.integration.title"></span>
+        </button>
+        <button class="sidebar-item" type="button" data-target="section-browsers">
+          <span class="fluent-icon" data-icon="browser"></span>
+          <span data-i18n="settings.browsers.title"></span>
+        </button>
+        <button class="sidebar-item" type="button" data-target="section-profiles">
+          <span class="fluent-icon" data-icon="folder"></span>
+          <span data-i18n="settings.profiles.title"></span>
+        </button>
+        <button class="sidebar-item" type="button" data-target="section-debug">
+          <span class="fluent-icon" data-icon="debug"></span>
+          <span data-i18n="settings.debug.title"></span>
+        </button>
+      </div>
+
+      <div class="settings-main" id="settings-main">
+        <div class="card" id="section-appearance">
+          <div class="section-header">
+            <div class="section-head">
+              <h3 class="section-title">
+                <span data-i18n="settings.appearance.title"></span>
+              </h3>
+            </div>
+          </div>
+          <div class="control">
+            <div class="control-title">
+              <span class="fluent-icon" data-icon="person"></span>
+              <span data-i18n="settings.appearance.avatar.label"></span>
+            </div>
+            <div class="inline-actions">
+              <select class="input" id="avatar-preference">
+                <option value="picture" data-i18n="settings.appearance.avatar.picture"></option>
+                <option value="icon" data-i18n="settings.appearance.avatar.icon"></option>
+              </select>
+            </div>
+          </div>
+          <div class="control">
+            <div class="control-title">
+              <span class="fluent-icon" data-icon="open"></span>
+              <span data-i18n="settings.appearance.open"></span>
+            </div>
+            <div class="inline-actions">
+              <button class="button secondary" id="appearance-open">
+                <span class="fluent-icon" data-icon="open"></span>
+                <span data-i18n="settings.appearance.open"></span>
+              </button>
+            </div>
+          </div>
+          <div class="control">
+            <div class="control-title">
+              <span class="fluent-icon" data-icon="window"></span>
+              <span data-i18n="settings.appearance.effect.label"></span>
+            </div>
+            <div class="inline-actions">
+              <select class="input" id="window-effect">
+                <option value="mica" data-i18n="settings.appearance.effect.mica"></option>
+                <option value="acrylic" data-i18n="settings.appearance.effect.acrylic"></option>
+                <option value="tabbed" data-i18n="settings.appearance.effect.tabbed"></option>
+              </select>
+            </div>
+          </div>
+          <div class="control">
+            <div class="control-title">
+              <span class="fluent-icon" data-icon="search"></span>
+              <span data-i18n="settings.appearance.inputMode.label"></span>
+            </div>
+            <div class="inline-actions">
+              <select class="input" id="chooser-input-mode">
+                <option value="link" data-i18n="settings.appearance.inputMode.link"></option>
+                <option value="search" data-i18n="settings.appearance.inputMode.search"></option>
+                <option value="hidden" data-i18n="settings.appearance.inputMode.hidden"></option>
+              </select>
+            </div>
+          </div>
+          <div class="control">
+            <div class="control-title">
+              <span class="fluent-icon" data-icon="window"></span>
+              <span data-i18n="settings.appearance.windowControls.label"></span>
+            </div>
+            <div class="toggle">
+              <input type="checkbox" id="chooser-window-controls" />
+            </div>
+          </div>
+          <div class="control">
+            <div class="control-title">
+              <span class="fluent-icon" data-icon="close"></span>
+              <span data-i18n="settings.appearance.closeOnBlur.label"></span>
+            </div>
+            <div class="toggle">
+              <input type="checkbox" id="chooser-close-on-blur" />
+            </div>
+          </div>
+          <div class="control">
+            <div class="control-title">
+              <span class="fluent-icon" data-icon="grid"></span>
+              <span data-i18n="settings.appearance.profileColumns.label"></span>
+            </div>
+            <div class="inline-actions">
+              <select class="input" id="chooser-columns">
+                <option value="1" data-i18n="settings.appearance.profileColumns.one"></option>
+                <option value="2" data-i18n="settings.appearance.profileColumns.two"></option>
+                <option value="3" data-i18n="settings.appearance.profileColumns.three"></option>
+                <option value="4" data-i18n="settings.appearance.profileColumns.four"></option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <div class="card" id="section-language">
+          <div class="section-header">
+            <div class="section-head">
+              <h3 class="section-title">
+                <span data-i18n="settings.language.title"></span>
+              </h3>
+            </div>
+          </div>
+          <div class="control">
+            <div class="control-title">
+              <span class="fluent-icon" data-icon="language"></span>
+              <span data-i18n="settings.language.label"></span>
+            </div>
+            <div class="inline-actions">
+              <select class="input" id="language-select">
+                <option value="zh-CN" data-i18n="settings.language.zhCN"></option>
+                <option value="zh-TW" data-i18n="settings.language.zhTW"></option>
+                <option value="en-US" data-i18n="settings.language.enUS"></option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <div class="card" id="section-integration">
+          <div class="section-header">
+            <div class="section-head">
+              <h3 class="section-title">
+                <span data-i18n="settings.integration.title"></span>
+              </h3>
+            </div>
+          </div>
+          <div class="control">
+            <div class="control-title">
+              <span class="fluent-icon" data-icon="shield"></span>
+              <div id="integration-status"></div>
+            </div>
+            <div class="inline-actions">
+              <button class="button" id="integration-register">
+                <span class="fluent-icon" data-icon="add"></span>
+                <span data-i18n="settings.integration.register"></span>
+              </button>
+              <button class="button secondary" id="integration-unregister">
+                <span class="fluent-icon" data-icon="remove"></span>
+                <span data-i18n="settings.integration.unregister"></span>
+              </button>
+            </div>
+          </div>
+          <div class="control">
+            <div class="control-title">
+              <span class="fluent-icon" data-icon="browser"></span>
+              <span data-i18n="settings.routing.desc"></span>
+            </div>
+            <div class="toggle">
+              <input type="checkbox" id="routing-chooser-toggle" />
+            </div>
+          </div>
+          <div class="control">
+            <div class="control-title">
+              <span class="fluent-icon" data-icon="link"></span>
+              <span data-i18n="settings.integration.defaultAction"></span>
+            </div>
+            <div class="inline-actions">
+              <button class="button secondary" id="integration-default">
+                <span class="fluent-icon" data-icon="open"></span>
+                <span data-i18n="settings.integration.defaultAction"></span>
+              </button>
+            </div>
+          </div>
+          <div class="control">
+            <div class="control-title">
+              <span class="fluent-icon" data-icon="link"></span>
+              <span data-i18n="settings.integration.association.https"></span>
+            </div>
+            <div class="toggle">
+              <input type="checkbox" id="assoc-https" />
+            </div>
+          </div>
+          <div class="control">
+            <div class="control-title">
+              <span class="fluent-icon" data-icon="link"></span>
+              <span data-i18n="settings.integration.association.http"></span>
+            </div>
+            <div class="toggle">
+              <input type="checkbox" id="assoc-http" />
+            </div>
+          </div>
+          <div class="control">
+            <div class="control-title">
+              <span class="fluent-icon" data-icon="file"></span>
+              <span data-i18n="settings.integration.association.files"></span>
+            </div>
+            <div class="toggle">
+              <input type="checkbox" id="assoc-files" />
+            </div>
+          </div>
+        </div>
+
+        <div class="card" id="section-browsers">
+          <div class="section-header">
+            <div class="section-head">
+              <h3 class="section-title">
+                <span data-i18n="settings.browsers.title"></span>
+              </h3>
+            </div>
+          </div>
+          <div class="control">
+            <div class="control-title">
+              <span class="fluent-icon" data-icon="refresh"></span>
+              <span data-i18n="settings.browsers.scan"></span>
+            </div>
+            <div class="inline-actions">
+              <button class="button" id="scan-browsers">
+                <span class="fluent-icon" data-icon="refresh"></span>
+                <span data-i18n="settings.browsers.scan"></span>
+              </button>
+            </div>
+          </div>
+          <div class="control">
+            <div class="control-title">
+              <span class="fluent-icon" data-icon="add"></span>
+              <span data-i18n="settings.browsers.add"></span>
+            </div>
+            <div class="inline-actions">
+              <button class="button secondary" id="add-custom-browser">
+                <span class="fluent-icon" data-icon="add"></span>
+                <span data-i18n="settings.browsers.add"></span>
+              </button>
+            </div>
+          </div>
+          <div id="browsers-list"></div>
+          <div class="status" id="status-text"></div>
+        </div>
+
+        <div class="card manager-embed" id="section-profiles">
+          <div class="section-header">
+            <div class="section-head">
+              <h3 class="section-title">
+                <span data-i18n="settings.profiles.title"></span>
+              </h3>
+            </div>
+          </div>
+          <div class="manager-layout manager-embed-layout" data-manager-embed="true">
+            <div class="header manager-header">
+              <div>
+                <div class="manager-actions">
+                  <button class="button" id="open-btn" type="button" disabled>
+                    <span class="fluent-icon" data-icon="open"></span>
+                    <span data-i18n="manager.open"></span>
+                  </button>
+                  <button class="button secondary" id="duplicate-btn" type="button" disabled>
+                    <span class="fluent-icon" data-icon="copy"></span>
+                    <span data-i18n="manager.duplicate"></span>
+                  </button>
+                  <button class="button secondary" id="rename-btn" type="button" disabled>
+                    <span class="fluent-icon" data-icon="edit"></span>
+                    <span data-i18n="manager.rename"></span>
+                  </button>
+                  <button class="button ghost danger" id="delete-btn" type="button" disabled>
+                    <span class="fluent-icon" data-icon="delete"></span>
+                    <span data-i18n="manager.delete"></span>
+                  </button>
+                </div>
+              </div>
+              <div class="inline-actions">
+                <div class="search-box manager-search-box">
+                  <span class="fluent-icon" data-icon="search"></span>
+                  <input class="input search-input" id="search-input" type="search"
+                    data-i18n-placeholder="manager.search.placeholder" />
+                </div>
+                <button class="button" id="refresh-btn" type="button">
+                  <span class="fluent-icon" data-icon="refresh"></span>
+                  <span data-i18n="manager.refresh"></span>
+                </button>
+              </div>
+            </div>
+
+            <div class="manager-grid">
+              <div class="manager-list-card">
+                <div class="manager-table-wrap">
+                  <table class="manager-table" id="table">
+                    <colgroup>
+                      <col class="col-check" />
+                      <col class="col-avatar" />
+                      <col class="col-browser" />
+                      <col class="col-profile" />
+                      <col class="col-account" />
+                      <col class="col-size" />
+                    </colgroup>
+                    <thead>
+                      <tr class="manager-header-row">
+                        <th class="manager-cell manager-cell-check">
+                          <input type="checkbox" id="select-all" />
+                        </th>
+                        <th class="manager-cell manager-cell-avatar manager-sort" data-sort-key="avatar"
+                          data-i18n="manager.columns.avatar"></th>
+                        <th class="manager-cell manager-cell-browser manager-sort" data-sort-key="browser"
+                          data-i18n="manager.columns.browser"></th>
+                        <th class="manager-cell manager-cell-profile manager-sort" data-sort-key="profile"
+                          data-i18n="manager.columns.profile"></th>
+                        <th class="manager-cell manager-cell-account manager-sort" data-sort-key="account"
+                          data-i18n="manager.columns.account"></th>
+                        <th class="manager-cell manager-cell-size manager-sort" data-sort-key="size"
+                          data-i18n="manager.columns.size"></th>
+                      </tr>
+                    </thead>
+                    <tbody id="table-body"></tbody>
+                  </table>
+                </div>
+                <div class="status" id="manager-status-text"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card" id="section-debug">
+          <div class="section-header">
+            <div class="section-head">
+              <h3 class="section-title">
+                <span data-i18n="settings.debug.title"></span>
+              </h3>
+            </div>
+          </div>
+          <div class="control">
+            <div class="control-title">
+              <span class="fluent-icon" data-icon="debug"></span>
+              <span data-i18n="settings.debug.desc"></span>
+            </div>
+            <div class="toggle">
+              <input type="checkbox" id="debug-toggle" />
+            </div>
+          </div>
+          <div class="control">
+            <div class="control-title">
+              <span class="fluent-icon" data-icon="link"></span>
+              <span data-i18n="settings.debug.testLink"></span>
+            </div>
+            <div class="inline-actions">
+              <button class="button secondary" id="debug-test-link" type="button">
+                <span class="fluent-icon" data-icon="open"></span>
+                <span data-i18n="settings.debug.testLinkAction"></span>
+              </button>
+            </div>
+          </div>
+          <div class="control">
+            <div class="control-title">
+              <span class="fluent-icon" data-icon="file"></span>
+              <span data-i18n="settings.debug.testFile"></span>
+            </div>
+            <div class="inline-actions">
+              <button class="button secondary" id="debug-test-file" type="button">
+                <span class="fluent-icon" data-icon="open"></span>
+                <span data-i18n="settings.debug.testFileAction"></span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <dialog class="manager-dialog" id="duplicate-dialog">
+    <div class="manager-dialog-title" data-i18n="manager.duplicate.title"></div>
+    <div class="manager-dialog-desc" id="duplicate-desc" data-i18n="manager.duplicate.desc"></div>
+
+    <div class="manager-dialog-body" id="duplicate-options">
+      <label class="toggle manager-dialog-toggle">
+        <input type="checkbox" id="dup-bookmarks" checked />
+        <span data-i18n="manager.duplicate.bookmarks"></span>
+      </label>
+      <label class="toggle manager-dialog-toggle">
+        <input type="checkbox" id="dup-extensions" />
+        <span data-i18n="manager.duplicate.extensions"></span>
+      </label>
+      <label class="toggle manager-dialog-toggle">
+        <input type="checkbox" id="dup-history" />
+        <span data-i18n="manager.duplicate.history"></span>
+      </label>
+      <label class="toggle manager-dialog-toggle">
+        <input type="checkbox" id="dup-site" />
+        <span data-i18n="manager.duplicate.siteData"></span>
+      </label>
+    </div>
+
+    <div class="manager-dialog-body">
+      <div class="section-desc" style="margin-bottom: 5px;" data-i18n="manager.duplicate.name"></div>
+      <input class="input" id="dup-name" />
+    </div>
+
+    <div class="manager-dialog-actions">
+      <button class="button ghost" id="dup-cancel" type="button" data-i18n="manager.cancel"></button>
+      <button class="button" id="dup-confirm" type="button" data-i18n="manager.confirm"></button>
+    </div>
+  </dialog>
+
+  <dialog class="manager-dialog" id="rename-dialog">
+    <div class="manager-dialog-title" data-i18n="manager.rename"></div>
+    <div class="manager-dialog-body">
+      <div class="section-desc" style="margin-bottom: 5px;" data-i18n="manager.renamePrompt"></div>
+      <input class="input" id="rename-input" type="text" />
+    </div>
+    <div class="manager-dialog-actions">
+      <button class="button ghost" id="rename-cancel" type="button" data-i18n="manager.cancel"></button>
+      <button class="button" id="rename-confirm" type="button" data-i18n="manager.confirm"></button>
+    </div>
+  </dialog>
+
+  <dialog class="manager-dialog" id="custom-browser-dialog">
+    <div class="manager-dialog-title" data-i18n="settings.custom.add.title"></div>
+    <div class="manager-dialog-body">
+      <div class="section-desc" data-i18n="settings.custom.add.id"></div>
+      <input class="input" id="custom-browser-id" type="text" />
+      <div class="section-desc" data-i18n="settings.custom.add.name"></div>
+      <input class="input" id="custom-browser-name" type="text" />
+      <div class="section-desc" data-i18n="settings.custom.add.type"></div>
+      <select class="input" id="custom-browser-type">
+        <option value="chromium">Chromium</option>
+        <option value="firefox">Firefox</option>
+      </select>
+      <div class="section-desc" data-i18n="settings.custom.add.exe"></div>
+      <textarea class="input rule-input" id="custom-browser-exe"></textarea>
+      <div class="section-desc" data-i18n="settings.custom.add.userData"></div>
+      <div class="inline-actions">
+        <input class="input" id="custom-browser-userdata" type="text" />
+        <button class="button secondary" id="custom-browser-userdata-pick" type="button" data-i18n="settings.custom.add.userDataPick"></button>
+      </div>
+    </div>
+    <div class="manager-dialog-actions">
+      <button class="button ghost" id="custom-browser-cancel" type="button" data-i18n="manager.cancel"></button>
+      <button class="button" id="custom-browser-confirm" type="button" data-i18n="manager.confirm"></button>
+    </div>
+  </dialog>
+
+  <script src="settings.js"></script>
+  <script type="module" src="manager.js"></script>
+</body>
+
+</html>

@@ -1,0 +1,252 @@
+.settings-layout {
+  display: flex;
+  height: 100%;
+  min-height: 0;
+}
+
+.sidebar {
+  width: 200px;
+  flex: 0 0 200px;
+  padding: 5px;
+  display: flex;
+  flex-direction: column;
+  overflow: auto;
+  gap: 5px;
+}
+
+.sidebar-item {
+  width: 100%;
+  border: 0;
+  border-radius: var(--radius-sm);
+  padding: 5px;
+  background: transparent;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 14px;
+  color: var(--text);
+}
+
+.sidebar-item:hover {
+  background: var(--hover);
+}
+
+.sidebar-item.active {
+  background: var(--accent);
+  color: #fff;
+}
+
+.settings-main {
+  flex: 1;
+  min-width: 0;
+  overflow: auto;
+  padding: 5px;
+  padding-top: 0;
+}
+
+.settings-main .card {
+  background: transparent;
+  border: 0;
+  padding: 0;
+}
+
+.settings-main .card+.card {
+  margin-top: 10px;
+}
+
+.settings-main .control {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 10px 15px;
+  margin-bottom: 10px;
+  gap: 5px;
+}
+
+.settings-main .control .toggle,
+.browser-header .toggle {
+  margin-top: 10px;
+  margin-bottom: 10px;
+}
+
+.settings-main .control> :last-child {
+  margin-left: auto;
+}
+
+.settings-main .section-desc {
+  margin-bottom: 10px;
+}
+
+.settings-main .section-header {
+  margin-bottom: 10px;
+}
+
+.browser-item {
+  padding: 10px 15px;
+  border-radius: var(--radius-sm);
+  background: var(--panel);
+  border: 1px solid var(--border);
+  margin-bottom: 10px;
+}
+
+.section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  margin-bottom: 10px;
+}
+
+.section-head {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.section-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.browser-item:last-child {
+  margin-bottom: 0;
+}
+
+.browser-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+}
+
+.browser-title-wrap {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 14px;
+}
+
+.browser-icon {
+  width: 16px;
+  height: 16px;
+  object-fit: contain;
+}
+
+.browser-header h4 {
+  margin: 0;
+  font-size: 14px;
+  font-weight: normal;
+  cursor: inherit;
+}
+
+.browser-title {
+  cursor: inherit;
+}
+
+.browser-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  margin-left: auto;
+  cursor: default;
+}
+
+.browser-body.collapsed {
+  display: none;
+}
+
+.profile-list {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  margin-bottom: 10px;
+}
+
+.profile-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background: color-mix(in srgb, var(--panel-2) 15%, transparent);
+}
+
+.profile-left {
+  min-width: 0;
+}
+
+.profile-name {
+  font-size: 14px;
+}
+
+.profile-left small {
+  color: var(--muted);
+}
+
+.browser-toggle {
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-sm);
+  color: var(--text);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.browser-toggle:hover {
+  background: var(--hover);
+}
+
+.browser-toggle[data-expanded='true'] .fluent-icon {
+  transform: rotate(180deg);
+}
+
+.rule-input {
+  min-height: 100px;
+  padding: 10px;
+  line-height: 1.5;
+  resize: vertical;
+}
+
+.rule-form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.rule-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.rule-field {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.manager-embed .manager-layout {
+  padding: 0;
+  height: auto;
+  overflow: visible;
+}
+
+.manager-embed .manager-grid {
+  overflow: visible;
+}
+
+.manager-embed .manager-list-card {
+  border: 0;
+  background: transparent;
+  padding: 0;
+}

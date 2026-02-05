@@ -1,0 +1,317 @@
+{
+  "browsers": [
+    {
+      "id": "edge",
+      "name": "Microsoft Edge",
+      "type": "chromium",
+      "exeCandidates": {
+        "win32": [
+          "${PROGRAMFILES}/Microsoft/Edge/Application/msedge.exe",
+          "${PROGRAMFILES_X86}/Microsoft/Edge/Application/msedge.exe",
+          "${LOCALAPPDATA}/Microsoft/Edge/Application/msedge.exe"
+        ]
+      },
+      "userDataDir": {
+        "win32": ["${LOCALAPPDATA}/Microsoft/Edge/User Data"]
+      },
+      "launch": {
+        "profileArg": "--profile-directory={profileId}"
+      },
+      "profileImage": {
+        "pictureFiles": [
+          "Microsoft Edge Profile Picture.png",
+          "Edge Profile Picture.png",
+          "Profile Picture.png"
+        ],
+        "iconFiles": [
+          "Edge Profile.ico",
+          "Microsoft Edge Profile Picture.ico",
+          "Edge Profile Picture.ico",
+          "Profile Picture.ico"
+        ],
+        "avatarsDir": "Avatars",
+        "avatarsExtensions": [".png", ".jpg", ".jpeg", ".ico"]
+      }
+    },
+    {
+      "id": "chrome",
+      "name": "Google Chrome",
+      "type": "chromium",
+      "exeCandidates": {
+        "win32": [
+          "${PROGRAMFILES}/Google/Chrome/Application/chrome.exe",
+          "${PROGRAMFILES_X86}/Google/Chrome/Application/chrome.exe",
+          "${LOCALAPPDATA}/Google/Chrome/Application/chrome.exe"
+        ]
+      },
+      "userDataDir": {
+        "win32": ["${LOCALAPPDATA}/Google/Chrome/User Data"]
+      },
+      "launch": {
+        "profileArg": "--profile-directory={profileId}"
+      },
+      "profileImage": {
+        "pictureFiles": ["Google Profile Picture.png", "Profile Picture.png"],
+        "iconFiles": ["Google Profile.ico", "Google Profile Picture.ico", "Profile Picture.ico"],
+        "avatarsDir": "Avatars",
+        "avatarsExtensions": [".png", ".jpg", ".jpeg", ".ico"]
+      }
+    },
+    {
+      "id": "chrome-beta",
+      "name": "Google Chrome Beta",
+      "type": "chromium",
+      "iconResourceId": "IDR_X005_BETA",
+      "exeCandidates": {
+        "win32": [
+          "${PROGRAMFILES}/Google/Chrome Beta/Application/chrome.exe",
+          "${PROGRAMFILES_X86}/Google/Chrome Beta/Application/chrome.exe"
+        ]
+      },
+      "userDataDir": {
+        "win32": ["${LOCALAPPDATA}/Google/Chrome Beta/User Data"]
+      },
+      "launch": {
+        "profileArg": "--profile-directory={profileId}"
+      },
+      "profileImage": {
+        "pictureFiles": ["Google Profile Picture.png", "Profile Picture.png"],
+        "iconFiles": ["Google Profile.ico", "Google Profile Picture.ico", "Profile Picture.ico"],
+        "avatarsDir": "Avatars",
+        "avatarsExtensions": [".png", ".jpg", ".jpeg", ".ico"]
+      }
+    },
+    {
+      "id": "chrome-dev",
+      "name": "Google Chrome Dev",
+      "type": "chromium",
+      "iconResourceId": "IDR_X004_DEV",
+      "exeCandidates": {
+        "win32": [
+          "${PROGRAMFILES}/Google/Chrome Dev/Application/chrome.exe",
+          "${PROGRAMFILES_X86}/Google/Chrome Dev/Application/chrome.exe"
+        ]
+      },
+      "userDataDir": {
+        "win32": ["${LOCALAPPDATA}/Google/Chrome Dev/User Data"]
+      },
+      "launch": {
+        "profileArg": "--profile-directory={profileId}"
+      },
+      "profileImage": {
+        "pictureFiles": ["Google Profile Picture.png", "Profile Picture.png"],
+        "iconFiles": ["Google Profile.ico", "Google Profile Picture.ico", "Profile Picture.ico"],
+        "avatarsDir": "Avatars",
+        "avatarsExtensions": [".png", ".jpg", ".jpeg", ".ico"]
+      }
+    },
+    {
+      "id": "chrome-canary",
+      "name": "Google Chrome Canary",
+      "type": "chromium",
+      "iconResourceId": "IDR_SXS",
+      "exeCandidates": {
+        "win32": [
+          "${LOCALAPPDATA}/Google/Chrome SxS/Application/chrome.exe"
+        ]
+      },
+      "userDataDir": {
+        "win32": ["${LOCALAPPDATA}/Google/Chrome SxS/User Data"]
+      },
+      "launch": {
+        "profileArg": "--profile-directory={profileId}"
+      },
+      "profileImage": {
+        "pictureFiles": ["Google Profile Picture.png", "Profile Picture.png"],
+        "iconFiles": ["Google Profile.ico", "Google Profile Picture.ico", "Profile Picture.ico"],
+        "avatarsDir": "Avatars",
+        "avatarsExtensions": [".png", ".jpg", ".jpeg", ".ico"]
+      }
+    },
+    {
+      "id": "firefox",
+      "name": "Mozilla Firefox",
+      "type": "firefox",
+      "exeCandidates": {
+        "win32": [
+          "${PROGRAMFILES}/Mozilla Firefox/firefox.exe",
+          "${PROGRAMFILES_X86}/Mozilla Firefox/firefox.exe"
+        ]
+      },
+      "launch": {
+        "profileArgName": ["-P", "{profileId}"],
+        "profileArgPath": ["-profile", "{profileId}"]
+      }
+    },
+    {
+      "id": "brave",
+      "name": "Brave Browser",
+      "type": "chromium",
+      "exeCandidates": {
+        "win32": [
+          "${PROGRAMFILES}/BraveSoftware/Brave-Browser/Application/brave.exe",
+          "${PROGRAMFILES_X86}/BraveSoftware/Brave-Browser/Application/brave.exe",
+          "${LOCALAPPDATA}/BraveSoftware/Brave-Browser/Application/brave.exe"
+        ]
+      },
+      "userDataDir": {
+        "win32": ["${LOCALAPPDATA}/BraveSoftware/Brave-Browser/User Data"]
+      },
+      "launch": {
+        "profileArg": "--profile-directory={profileId}"
+      },
+      "profileImage": {
+        "pictureFiles": ["Brave Profile Picture.png", "Profile Picture.png"],
+        "iconFiles": ["Brave Profile Picture.ico", "Profile Picture.ico"],
+        "avatarsDir": "Avatars",
+        "avatarsExtensions": [".png", ".jpg", ".jpeg", ".ico"]
+      }
+    },
+    {
+      "id": "vivaldi",
+      "name": "Vivaldi",
+      "type": "chromium",
+      "exeCandidates": {
+        "win32": [
+          "${PROGRAMFILES}/Vivaldi/Application/vivaldi.exe",
+          "${PROGRAMFILES_X86}/Vivaldi/Application/vivaldi.exe",
+          "${LOCALAPPDATA}/Vivaldi/Application/vivaldi.exe"
+        ]
+      },
+      "userDataDir": {
+        "win32": ["${LOCALAPPDATA}/Vivaldi/User Data"]
+      },
+      "launch": {
+        "profileArg": "--profile-directory={profileId}"
+      },
+      "profileImage": {
+        "pictureFiles": ["Vivaldi Profile Picture.png", "Profile Picture.png"],
+        "iconFiles": ["Vivaldi Profile.ico", "Vivaldi Profile Picture.ico", "Profile Picture.ico"],
+        "avatarsDir": "Avatars",
+        "avatarsExtensions": [".png", ".jpg", ".jpeg", ".ico"]
+      }
+    },
+    {
+      "id": "chromium",
+      "name": "Chromium",
+      "type": "chromium",
+      "exeCandidates": {
+        "win32": [
+          "${PROGRAMFILES}/Chromium/Application/chrome.exe",
+          "${PROGRAMFILES_X86}/Chromium/Application/chrome.exe",
+          "${LOCALAPPDATA}/Chromium/Application/chrome.exe"
+        ]
+      },
+      "userDataDir": {
+        "win32": ["${LOCALAPPDATA}/Chromium/User Data"]
+      },
+      "launch": {
+        "profileArg": "--profile-directory={profileId}"
+      },
+      "profileImage": {
+        "pictureFiles": ["Chromium Profile Picture.png", "Profile Picture.png"],
+        "iconFiles": ["Chromium Profile Picture.ico", "Profile Picture.ico"],
+        "avatarsDir": "Avatars",
+        "avatarsExtensions": [".png", ".jpg", ".jpeg", ".ico"]
+      }
+    },
+    {
+      "id": "edge-beta",
+      "name": "Microsoft Edge Beta",
+      "type": "chromium",
+      "iconIndex": 1,
+      "exeCandidates": {
+        "win32": [
+          "${PROGRAMFILES_X86}/Microsoft/Edge Beta/Application/msedge.exe",
+          "${PROGRAMFILES}/Microsoft/Edge Beta/Application/msedge.exe"
+        ]
+      },
+      "userDataDir": {
+        "win32": ["${LOCALAPPDATA}/Microsoft/Edge Beta/User Data"]
+      },
+      "launch": {
+        "profileArg": "--profile-directory={profileId}"
+      },
+      "profileImage": {
+        "pictureFiles": [
+          "Microsoft Edge Profile Picture.png",
+          "Edge Profile Picture.png",
+          "Profile Picture.png"
+        ],
+        "iconFiles": [
+          "Edge Profile.ico",
+          "Microsoft Edge Profile Picture.ico",
+          "Edge Profile Picture.ico",
+          "Profile Picture.ico"
+        ],
+        "avatarsDir": "Avatars",
+        "avatarsExtensions": [".png", ".jpg", ".jpeg", ".ico"]
+      }
+    },
+    {
+      "id": "edge-dev",
+      "name": "Microsoft Edge Dev",
+      "type": "chromium",
+      "iconIndex": 2,
+      "exeCandidates": {
+        "win32": [
+          "${PROGRAMFILES_X86}/Microsoft/Edge Dev/Application/msedge.exe",
+          "${PROGRAMFILES}/Microsoft/Edge Dev/Application/msedge.exe"
+        ]
+      },
+      "userDataDir": {
+        "win32": ["${LOCALAPPDATA}/Microsoft/Edge Dev/User Data"]
+      },
+      "launch": {
+        "profileArg": "--profile-directory={profileId}"
+      },
+      "profileImage": {
+        "pictureFiles": [
+          "Microsoft Edge Profile Picture.png",
+          "Edge Profile Picture.png",
+          "Profile Picture.png"
+        ],
+        "iconFiles": [
+          "Edge Profile.ico",
+          "Microsoft Edge Profile Picture.ico",
+          "Edge Profile Picture.ico",
+          "Profile Picture.ico"
+        ],
+        "avatarsDir": "Avatars",
+        "avatarsExtensions": [".png", ".jpg", ".jpeg", ".ico"]
+      }
+    },
+    {
+      "id": "edge-canary",
+      "name": "Microsoft Edge Canary",
+      "type": "chromium",
+      "iconIndex": 3,
+      "exeCandidates": {
+        "win32": [
+          "${LOCALAPPDATA}/Microsoft/Edge SxS/Application/msedge.exe"
+        ]
+      },
+      "userDataDir": {
+        "win32": ["${LOCALAPPDATA}/Microsoft/Edge SxS/User Data"]
+      },
+      "launch": {
+        "profileArg": "--profile-directory={profileId}"
+      },
+      "profileImage": {
+        "pictureFiles": [
+          "Microsoft Edge Profile Picture.png",
+          "Edge Profile Picture.png",
+          "Profile Picture.png"
+        ],
+        "iconFiles": [
+          "Edge Profile.ico",
+          "Microsoft Edge Profile Picture.ico",
+          "Edge Profile Picture.ico",
+          "Profile Picture.ico"
+        ],
+        "avatarsDir": "Avatars",
+        "avatarsExtensions": [".png", ".jpg", ".jpeg", ".ico"]
+      }
+    }
+  ]
+}

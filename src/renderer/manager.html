@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Open</title>
+    <link rel="stylesheet" href="main.css" />
+    <link rel="stylesheet" href="manager.css" />
+  </head>
+
+<body>
+  <div class="titlebar">
+    <div class="titlebar-left">
+      <span class="fluent-icon" data-icon="app"></span>
+      <span class="titlebar-title" data-i18n="manager.title"></span>
+    </div>
+  </div>
+
+  <div class="app">
+    <div class="manager-layout">
+      <div class="header manager-header">
+        <div>
+          <div class="manager-actions">
+            <button class="button" id="open-btn" type="button" disabled>
+              <span class="fluent-icon" data-icon="open"></span>
+              <span data-i18n="manager.open"></span>
+            </button>
+            <button class="button secondary" id="duplicate-btn" type="button" disabled>
+              <span class="fluent-icon" data-icon="copy"></span>
+              <span data-i18n="manager.duplicate"></span>
+            </button>
+            <button class="button secondary" id="rename-btn" type="button" disabled>
+              <span class="fluent-icon" data-icon="edit"></span>
+              <span data-i18n="manager.rename"></span>
+            </button>
+            <button class="button ghost danger" id="delete-btn" type="button" disabled>
+              <span class="fluent-icon" data-icon="delete"></span>
+              <span data-i18n="manager.delete"></span>
+            </button>
+          </div>
+
+        </div>
+        <div class="inline-actions">
+          <div class="search-box manager-search-box">
+            <span class="fluent-icon" data-icon="search"></span>
+            <input class="input search-input" id="search-input" type="search"
+              data-i18n-placeholder="manager.search.placeholder" />
+          </div>
+          <button class="button" id="refresh-btn" type="button">
+            <span class="fluent-icon" data-icon="refresh"></span>
+            <span data-i18n="manager.refresh"></span>
+          </button>
+          <button class="button secondary" id="settings-btn" type="button">
+            <span class="fluent-icon" data-icon="settings"></span>
+            <span data-i18n="manager.settings"></span>
+          </button>
+        </div>
+      </div>
+
+        <div class="manager-grid">
+          <div class="manager-list-card">
+            <div class="manager-table-wrap">
+              <table class="manager-table" id="table">
+                <colgroup>
+                  <col class="col-check" />
+                  <col class="col-avatar" />
+                  <col class="col-browser" />
+                  <col class="col-profile" />
+                  <col class="col-account" />
+                  <col class="col-size" />
+                </colgroup>
+                <thead>
+                  <tr class="manager-header-row">
+                    <th class="manager-cell manager-cell-check">
+                      <input type="checkbox" id="select-all" />
+                    </th>
+                    <th class="manager-cell manager-cell-avatar manager-sort" data-sort-key="avatar" data-i18n="manager.columns.avatar"></th>
+                    <th class="manager-cell manager-cell-browser manager-sort" data-sort-key="browser" data-i18n="manager.columns.browser"></th>
+                    <th class="manager-cell manager-cell-profile manager-sort" data-sort-key="profile" data-i18n="manager.columns.profile"></th>
+                    <th class="manager-cell manager-cell-account manager-sort" data-sort-key="account" data-i18n="manager.columns.account"></th>
+                    <th class="manager-cell manager-cell-size manager-sort" data-sort-key="size" data-i18n="manager.columns.size"></th>
+                  </tr>
+                </thead>
+                <tbody id="table-body"></tbody>
+              </table>
+            </div>
+            <div class="status" id="manager-status-text"></div>
+          </div>
+        </div>
+    </div>
+  </div>
+
+  <dialog class="manager-dialog" id="duplicate-dialog">
+    <div class="manager-dialog-title" data-i18n="manager.duplicate.title"></div>
+    <div class="manager-dialog-desc" id="duplicate-desc" data-i18n="manager.duplicate.desc"></div>
+
+    <div class="manager-dialog-body" id="duplicate-options">
+      <label class="toggle manager-dialog-toggle">
+        <input type="checkbox" id="dup-bookmarks" checked />
+        <span data-i18n="manager.duplicate.bookmarks"></span>
+      </label>
+      <label class="toggle manager-dialog-toggle">
+        <input type="checkbox" id="dup-extensions" />
+        <span data-i18n="manager.duplicate.extensions"></span>
+      </label>
+      <label class="toggle manager-dialog-toggle">
+        <input type="checkbox" id="dup-history" />
+        <span data-i18n="manager.duplicate.history"></span>
+      </label>
+      <label class="toggle manager-dialog-toggle">
+        <input type="checkbox" id="dup-site" />
+        <span data-i18n="manager.duplicate.siteData"></span>
+      </label>
+    </div>
+
+    <div class="manager-dialog-body">
+      <div class="section-desc" style="margin-bottom: 5px;" data-i18n="manager.duplicate.name"></div>
+      <input class="input" id="dup-name" />
+    </div>
+
+    <div class="manager-dialog-actions">
+      <button class="button ghost" id="dup-cancel" type="button" data-i18n="manager.cancel"></button>
+      <button class="button" id="dup-confirm" type="button" data-i18n="manager.confirm"></button>
+    </div>
+  </dialog>
+
+  <dialog class="manager-dialog" id="rename-dialog">
+    <div class="manager-dialog-title" data-i18n="manager.rename"></div>
+    <div class="manager-dialog-body">
+      <div class="section-desc" style="margin-bottom: 5px;" data-i18n="manager.renamePrompt"></div>
+      <input class="input" id="rename-input" type="text" />
+    </div>
+    <div class="manager-dialog-actions">
+      <button class="button ghost" id="rename-cancel" type="button" data-i18n="manager.cancel"></button>
+      <button class="button" id="rename-confirm" type="button" data-i18n="manager.confirm"></button>
+    </div>
+  </dialog>
+
+  <script src="manager.js"></script>
+</body>
+
+</html>

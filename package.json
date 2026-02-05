@@ -1,0 +1,22 @@
+{
+  "name": "open",
+  "version": "0.1.0",
+  "description": "A refined, portable link and document router.",
+  "productName": "Open",
+  "os": [
+    "win32"
+  ],
+  "main": "src/main/index.js",
+  "type": "commonjs",
+  "license": "MIT",
+  "scripts": {
+    "start": "electron .",
+    "link": "electron . --target=https://meta.appinn.net",
+    "file": "electron . --target=scripts/open-test.html",
+    "pack": "electron-packager . Open --platform=win32 --arch=x64 --overwrite --out=dist --icon=assets/open.ico"
+  },
+  "devDependencies": {
+    "electron": "^40.1.0",
+    "electron-packager": "^17.1.2"
+  }
+}
