@@ -65,6 +65,12 @@ Open 是一款便携式网页链接打开方式管理器，用于在接管网页
 - 支持语言：`zh-CN` / `zh-TW` / `en-US`（设置页可切换语言）
 
 ## 开发测试
+- `npm install`: 安装依赖
+- `npm start`：启动设置页面
 - `npm run link`：用测试链接拉起 chooser
 - `npm run file`：用测试 HTML 文件拉起 chooser
 - 设置页调试模式提供：测试链接打开 / 测试文件打开
+
+## Star History
+
+[![Star History Chart](https://api.star-history.com/svg?repos=fohog/Open&type=date&legend=top-left)](https://www.star-history.com/#fohog/Open&type=date&legend=top-left)
