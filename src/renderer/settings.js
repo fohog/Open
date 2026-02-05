@@ -11,6 +11,8 @@ const enhancedSelects = new WeakMap();
 let selectDocListenerBound = false;
 let onboardingStep = 0;
 const onboardingTotalSteps = 5;
+let onboardingSessionLocale = '';
+let onboardingLiveUpdateQueue = Promise.resolve();
 
 function closeAllSelectMenus() {
   document.querySelectorAll('.select.open').forEach((node) => node.classList.remove('open'));
@@ -97,6 +99,17 @@ function enhanceSelectsIn(container = document) {
 function syncEnhancedSelect(select) {
   const data = enhancedSelects.get(select);
   if (data && typeof data.syncLabel === 'function') data.syncLabel();
+}
+
+function rebuildEnhancedSelect(select) {
+  const data = enhancedSelects.get(select);
+  if (!data) return;
+  if (typeof data.rebuildOptions === 'function') data.rebuildOptions();
+  if (typeof data.syncLabel === 'function') data.syncLabel();
+}
+
+function rebuildEnhancedSelects(container = document) {
+  container.querySelectorAll('select').forEach((select) => rebuildEnhancedSelect(select));
 }
 
 const browserOrder = [
@@ -956,6 +969,8 @@ function applyIconGlyphs() {
     debug: '\uE7BA',
     save: '\uE74E',
     chevron: '\uE70D',
+    'arrow-left': '\uE72B',
+    'arrow-right': '\uE72A',
     open: '\uE8A7',
     appearance: '\uE790',
     language: '\uE774',
@@ -1076,12 +1091,96 @@ function renderOnboardingBrowserList() {
   });
 }
 
+function refreshOnboardingPreviewFrame() {
+  const frame = document.getElementById('onboarding-preview-frame');
+  if (!frame) return;
+  const inputMode = ['link', 'search', 'hidden'].includes(config.chooserInputMode) ? config.chooserInputMode : 'link';
+  const columns = [1, 2, 3, 4].includes(Number(config.chooserColumns)) ? Number(config.chooserColumns) : 2;
+  const params = new URLSearchParams({
+    preview: '1',
+    target: 'https://www.google.com',
+    inputMode,
+    columns: String(columns)
+  });
+  const nextSrc = `chooser.html?${params.toString()}`;
+  if (frame.getAttribute('src') !== nextSrc) {
+    frame.setAttribute('src', nextSrc);
+  }
+}
+
+function syncMainSettingsFromOnboarding() {
+  const languageSelect = document.getElementById('language-select');
+  if (languageSelect) {
+    languageSelect.value = config.locale || 'en-US';
+    syncEnhancedSelect(languageSelect);
+  }
+  const windowEffect = document.getElementById('window-effect');
+  if (windowEffect) {
+    windowEffect.value = ['mica', 'acrylic', 'tabbed'].includes(config.windowEffect) ? config.windowEffect : 'mica';
+    syncEnhancedSelect(windowEffect);
+  }
+  const chooserInputMode = document.getElementById('chooser-input-mode');
+  if (chooserInputMode) {
+    chooserInputMode.value = ['link', 'search', 'hidden'].includes(config.chooserInputMode) ? config.chooserInputMode : 'link';
+    syncEnhancedSelect(chooserInputMode);
+  }
+  const chooserColumns = document.getElementById('chooser-columns');
+  if (chooserColumns) {
+    const value = [1, 2, 3, 4].includes(Number(config.chooserColumns)) ? String(config.chooserColumns) : '2';
+    chooserColumns.value = value;
+    syncEnhancedSelect(chooserColumns);
+  }
+}
+
+async function applyOnboardingLiveUpdate(changeType) {
+  const previousEffect = config.windowEffect;
+  applyOnboardingFieldsToConfig();
+  syncMainSettingsFromOnboarding();
+  refreshOnboardingPreviewFrame();
+  await window.api.saveConfig(config);
+  if (changeType === 'windowEffect' && previousEffect !== config.windowEffect) {
+    await window.api.setWindowEffect(config.windowEffect);
+  }
+  if (changeType === 'language') {
+    const refreshed = await window.api.getState();
+    if (refreshed && refreshed.dict) {
+      dict = refreshed.dict;
+      applyI18n();
+      document.title = t('settings.title');
+      rebuildEnhancedSelects(document);
+      updateIntegrationUI();
+      updateDebugUI();
+      renderOnboardingBrowserList();
+      updateOnboardingIntegrationStatus();
+      updateOnboardingStepUI();
+    }
+  }
+}
+
+function enqueueOnboardingLiveUpdate(changeType) {
+  onboardingLiveUpdateQueue = onboardingLiveUpdateQueue
+    .then(async () => {
+      await applyOnboardingLiveUpdate(changeType);
+    })
+    .catch(() => {
+      setStatus(t('settings.status.failed'));
+    });
+  return onboardingLiveUpdateQueue;
+}
+
 function updateOnboardingStepUI() {
   const overlay = document.getElementById('onboarding-overlay');
   if (!overlay) return;
   const pages = Array.from(overlay.querySelectorAll('.onboarding-page'));
   pages.forEach((page, index) => {
     page.classList.toggle('hidden', index !== onboardingStep);
+  });
+  const stepItems = Array.from(overlay.querySelectorAll('.onboarding-step-item[data-step-index]'));
+  stepItems.forEach((item) => {
+    const index = Number(item.getAttribute('data-step-index'));
+    const active = Number.isInteger(index) && index === onboardingStep;
+    item.classList.toggle('active', active);
+    item.setAttribute('aria-current', active ? 'step' : 'false');
   });
   const indicator = document.getElementById('onboarding-step-indicator');
   if (indicator) indicator.textContent = `${onboardingStep + 1}/${onboardingTotalSteps}`;
@@ -1116,6 +1215,7 @@ function syncOnboardingFields() {
     columns.value = current;
     syncEnhancedSelect(columns);
   }
+  refreshOnboardingPreviewFrame();
 }
 
 function applyOnboardingFieldsToConfig() {
@@ -1138,7 +1238,7 @@ function applyOnboardingFieldsToConfig() {
 async function closeOnboarding(markCompleted = true) {
   const overlay = document.getElementById('onboarding-overlay');
   if (!overlay) return;
-  const previousLocale = config.locale;
+  const sessionLocale = onboardingSessionLocale || config.locale;
   const previousEffect = config.windowEffect;
   if (!config.onboarding || typeof config.onboarding !== 'object') config.onboarding = {};
   if (markCompleted) {
@@ -1152,24 +1252,29 @@ async function closeOnboarding(markCompleted = true) {
   }
   document.body.classList.remove('onboarding-active');
   overlay.classList.add('hidden');
-  if (markCompleted && previousLocale !== config.locale) {
+  const localeChanged = markCompleted && sessionLocale !== config.locale;
+  onboardingSessionLocale = '';
+  if (localeChanged) {
     window.location.reload();
   }
 }
 
-function bindOnboarding() {
+function bindOnboarding(forceShow = false) {
   const overlay = document.getElementById('onboarding-overlay');
   if (!overlay) return;
-  const shouldShow = !(config && config.onboarding && config.onboarding.completed);
+  const shouldShow = forceShow || !(config && config.onboarding && config.onboarding.completed);
   if (!shouldShow) {
     document.body.classList.remove('onboarding-active');
     overlay.classList.add('hidden');
+    onboardingSessionLocale = '';
     return;
   }
   document.body.classList.add('onboarding-active');
   overlay.classList.remove('hidden');
+  onboardingSessionLocale = config.locale || 'en-US';
   onboardingStep = 0;
   syncOnboardingFields();
+  syncMainSettingsFromOnboarding();
   updateOnboardingIntegrationStatus();
   renderOnboardingBrowserList();
   updateOnboardingStepUI();
@@ -1182,6 +1287,11 @@ function bindOnboarding() {
   const addCustom = document.getElementById('onboarding-add-custom');
   const register = document.getElementById('onboarding-register');
   const defaults = document.getElementById('onboarding-open-defaults');
+  const language = document.getElementById('onboarding-language-select');
+  const effect = document.getElementById('onboarding-window-effect');
+  const inputMode = document.getElementById('onboarding-input-mode');
+  const columns = document.getElementById('onboarding-columns');
+  const stepItems = Array.from(overlay.querySelectorAll('.onboarding-step-item[data-step-index]'));
 
   if (back) {
     back.onclick = () => {
@@ -1237,6 +1347,34 @@ function bindOnboarding() {
   if (defaults) {
     defaults.onclick = async () => {
       await window.api.openSystemSettings('default-apps');
+    };
+  }
+  stepItems.forEach((item) => {
+    item.onclick = () => {
+      const nextStep = Number(item.getAttribute('data-step-index'));
+      if (!Number.isInteger(nextStep)) return;
+      onboardingStep = Math.max(0, Math.min(onboardingTotalSteps - 1, nextStep));
+      updateOnboardingStepUI();
+    };
+  });
+  if (language) {
+    language.onchange = async () => {
+      await enqueueOnboardingLiveUpdate('language');
+    };
+  }
+  if (effect) {
+    effect.onchange = async () => {
+      await enqueueOnboardingLiveUpdate('windowEffect');
+    };
+  }
+  if (inputMode) {
+    inputMode.onchange = async () => {
+      await enqueueOnboardingLiveUpdate('inputMode');
+    };
+  }
+  if (columns) {
+    columns.onchange = async () => {
+      await enqueueOnboardingLiveUpdate('columns');
     };
   }
 }
@@ -1472,6 +1610,16 @@ async function init() {
   if (routingToggle) routingToggle.addEventListener('change', applyRouting);
   updateRoutingUI();
   document.getElementById('debug-toggle').addEventListener('change', applyDebug);
+  const openWelcomeBtn = document.getElementById('debug-open-onboarding');
+  if (openWelcomeBtn) {
+    openWelcomeBtn.addEventListener('click', async () => {
+      if (!config.onboarding || typeof config.onboarding !== 'object') config.onboarding = {};
+      config.onboarding.completed = false;
+      config.onboarding.completedAt = 0;
+      await window.api.saveConfig(config);
+      bindOnboarding(true);
+    });
+  }
   const testLinkBtn = document.getElementById('debug-test-link');
   if (testLinkBtn) {
     testLinkBtn.addEventListener('click', async () => {

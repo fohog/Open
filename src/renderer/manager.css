@@ -295,6 +295,10 @@
   margin-bottom: 10px;
 }
 
+.manager-dialog-body .section-desc {
+  margin-bottom: 0;
+}
+
 .manager-dialog-toggle {
   border: 1px solid var(--border);
   border-radius: var(--radius);

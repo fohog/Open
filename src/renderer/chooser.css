@@ -248,3 +248,16 @@
   padding: 10px;
   background: color-mix(in srgb, var(--panel) 80%, transparent);
 }
+
+body.preview-mode .chooser-dragbar {
+  display: none;
+}
+
+body.preview-mode .chooser {
+  padding: 10px;
+}
+
+body.preview-mode .actions .button {
+  pointer-events: none;
+  opacity: 0.7;
+}

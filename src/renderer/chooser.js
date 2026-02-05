@@ -8,6 +8,106 @@ let selectedProfile = { browserId: '', profileId: '' };
 let browserIcons = {};
 let searchQuery = '';
 let renameResolver = null;
+const query = (() => {
+  try {
+    return new URLSearchParams(window.location.search || '');
+  } catch (err) {
+    return new URLSearchParams('');
+  }
+})();
+const previewMode = query.get('preview') === '1';
+const previewTarget = query.get('target') || 'https://www.google.com';
+const previewColumns = (() => {
+  const value = Number(query.get('columns'));
+  return [1, 2, 3, 4].includes(value) ? value : 2;
+})();
+const previewInputMode = (() => {
+  const value = String(query.get('inputMode') || 'link').toLowerCase();
+  return ['link', 'search', 'hidden'].includes(value) ? value : 'link';
+})();
+
+function ensureApiBridge() {
+  const listeners = {
+    onTheme: [],
+    onInit: [],
+    onBlur: [],
+    onManagerMenuAction: [],
+    onProfileMenuAction: [],
+    onBrowserMenuAction: [],
+    onEditBrowser: [],
+    onLinkMenuAction: []
+  };
+  const bridge = window.api && typeof window.api === 'object' ? window.api : {};
+  const asyncFalse = async () => ({ ok: false });
+  const asyncEmpty = async () => '';
+  const defaults = {
+    getState: asyncFalse,
+    getManagerState: asyncFalse,
+    saveConfig: asyncFalse,
+    scanBrowsers: asyncFalse,
+    scanManager: asyncFalse,
+    pickExecutable: asyncEmpty,
+    pickFolder: asyncEmpty,
+    openTarget: asyncFalse,
+    openChooser: asyncFalse,
+    openProfiles: asyncFalse,
+    hideProfiles: asyncFalse,
+    deleteProfiles: asyncFalse,
+    undoDeleteProfiles: asyncFalse,
+    duplicateProfile: asyncFalse,
+    renameProfile: asyncFalse,
+    readBookmarks: asyncFalse,
+    getProfileFiles: async () => ({ ok: false, files: {} }),
+    getProfileSize: asyncFalse,
+    revealPath: asyncFalse,
+    closeChooser: asyncFalse,
+    openSystemSettings: asyncFalse,
+    openProfileFolder: asyncFalse,
+    showProfileMenu: asyncFalse,
+    registerBrowser: asyncFalse,
+    unregisterBrowser: asyncFalse,
+    checkBrowser: asyncFalse,
+    showSettings: asyncFalse,
+    showManager: asyncFalse,
+    showBrowserMenu: asyncFalse,
+    showLinkMenu: asyncFalse,
+    chooserControl: asyncFalse,
+    setChooserWindowControls: asyncFalse,
+    setAssociations: asyncFalse,
+    editBrowser: asyncFalse,
+    showManagerMenu: asyncFalse,
+    setWindowEffect: asyncFalse,
+    windowControl: asyncFalse,
+    resizeChooser: asyncFalse,
+    getTheme: asyncFalse
+  };
+  const events = ['onTheme', 'onInit', 'onBlur', 'onManagerMenuAction', 'onProfileMenuAction', 'onBrowserMenuAction', 'onEditBrowser', 'onLinkMenuAction'];
+
+  Object.keys(defaults).forEach((key) => {
+    if (typeof bridge[key] !== 'function') bridge[key] = defaults[key];
+  });
+  events.forEach((key) => {
+    if (typeof bridge[key] !== 'function') {
+      bridge[key] = (callback) => {
+        if (typeof callback === 'function') listeners[key].push(callback);
+      };
+    }
+  });
+  bridge.__emit = (eventName, payload) => {
+    const list = listeners[eventName] || [];
+    list.forEach((callback) => {
+      try {
+        callback(payload);
+      } catch (err) {
+        // ignore
+      }
+    });
+  };
+  window.api = bridge;
+  return bridge;
+}
+
+const api = ensureApiBridge();
 
 const tabOrder = [
   'edge',
@@ -323,6 +423,67 @@ function selectDefaultTab() {
   activeTab = firstAvailable || 'edge';
 }
 
+function getPreviewPayload() {
+  return {
+    dict: {
+      'chooser.title': 'Choose browser',
+      'chooser.question': 'Select a browser to open this link',
+      'chooser.question.file': 'Select a browser to open this file',
+      'chooser.text.placeholder': 'Link or file path',
+      'chooser.search.placeholder': 'Search profiles',
+      'chooser.copy': 'Copy link',
+      'chooser.settings': 'Settings',
+      'chooser.cancel': 'Cancel',
+      'chooser.open': 'Open',
+      'chooser.lastUsed': 'Last used',
+      'chooser.profile.default': 'Default',
+      'chooser.notConfigured': 'Browser not detected',
+      'chooser.search.empty': 'No matches'
+    },
+    config: {
+      chooserColumns: previewColumns,
+      chooserInputMode: previewInputMode,
+      closeChooserOnBlur: false,
+      debug: { showAllBrowsers: true },
+      lastSelection: { browserId: 'edge', profileId: 'Default' },
+      browsers: {
+        edge: {
+          enabled: true,
+          detected: true,
+          path: 'C:\\Program Files\\Microsoft\\Edge\\Application\\msedge.exe',
+          displayName: 'Microsoft Edge',
+          profiles: [
+            { id: 'Default', name: 'Default', avatarData: '' },
+            { id: 'Profile 1', name: 'Work', avatarData: '' }
+          ]
+        },
+        chrome: {
+          enabled: true,
+          detected: true,
+          path: 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe',
+          displayName: 'Google Chrome',
+          profiles: [
+            { id: 'Default', name: 'Default', avatarData: '' },
+            { id: 'Profile 2', name: 'Personal', avatarData: '' }
+          ]
+        },
+        firefox: {
+          enabled: true,
+          detected: true,
+          path: 'C:\\Program Files\\Mozilla Firefox\\firefox.exe',
+          displayName: 'Mozilla Firefox',
+          profiles: [{ id: 'default-release', name: 'default-release', avatarData: '' }]
+        }
+      }
+    },
+    target: previewTarget,
+    targetKind: 'link',
+    debugOverride: true,
+    browserIcons: {},
+    theme: { dark: false, accent: '#0078d4' }
+  };
+}
+
 function initUI() {
   document.title = t('chooser.title');
   const question = document.querySelector('.chooser-header .title');
@@ -449,6 +610,14 @@ function initUI() {
   renderTabContent();
 
   window.api.resizeChooser();
+  if (previewMode) {
+    document.body.classList.add('preview-mode');
+    const ids = ['copy-btn', 'settings-btn', 'cancel-btn', 'open-btn'];
+    ids.forEach((id) => {
+      const node = document.getElementById(id);
+      if (node) node.disabled = true;
+    });
+  }
 }
 
 async function copyTargetToClipboard() {
@@ -712,7 +881,7 @@ window.api.onBrowserMenuAction(async (data) => {
   }
 });
 
-window.api.onInit((payload) => {
+function handleInitPayload(payload) {
   dict = payload.dict || {};
   config = payload.config;
   target = payload.target || '';
@@ -722,7 +891,15 @@ window.api.onInit((payload) => {
   applyTheme(payload.theme);
   window.api.onTheme(applyTheme);
   initUI();
-});
+}
+
+if (previewMode) {
+  handleInitPayload(getPreviewPayload());
+} else {
+  window.api.onInit((payload) => {
+    handleInitPayload(payload);
+  });
+}
 
 window.api.onBlur(() => {
   if (!config || config.closeChooserOnBlur === false) return;

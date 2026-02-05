@@ -1,37 +1,43 @@
 # Open
 
-## 定位
-Open 是一款便携式网页链接打开方式管理器，用于在接管网页链接或 HTML 文件后，为用户提供浏览器与配置文件选择。
-当前仅支持 Windows。
+Open 是一个 Windows 下的便携式“打开方式路由器”。  
+它接管网页链接或 HTML 文件后，可以先弹出选择器，让你选择浏览器和配置文件再打开。
 
-## 结构
-- `src/main/index.js` 主进程入口，负责单实例、协议处理与窗口生命周期
-- `src/main/config.js` 本地配置读写与合并
-- `src/main/browsers.js` 浏览器检测、配置文件扫描、启动参数构建（由 JSON 驱动）
-- `src/main/associations.js` 协议与文件类型注册
-- `src/main/windows-browser.js` Windows 浏览器注册与清理
-- `src/main/windows.js` 设置窗口与选择器窗口管理
-- `src/renderer/settings.html` 设置页 UI
-- `src/renderer/settings.js` 设置页逻辑
-- `src/renderer/chooser.html` 浏览器选择器 UI
-- `src/renderer/chooser.js` 选择器逻辑
-- `src/renderer/main.css` 共享样式
-- `locales` 多语言文案
+## 快速构建与使用
 
-## 行为要点
-- 启动后直接显示设置页面
-- 选择器窗口置顶，失焦即关闭
-- 关闭窗口即退出进程
-- 退出仅关闭进程，不清理注册
-- 打开方式窗口默认可配置：输入框显示链接/搜索/隐藏，配置文件列表列数可设
+### 环境要求
+- Windows
+- Node.js 18+
 
-## UI 规范
-- 字体大小仅使用 14 16 18 20
-- 间距使用 5 10 12 15 20 30
-- 不使用阴影
-- 统一使用 12px 8px 圆角
-- 1x1 按钮使用 50% 圆角
-- 窗口使用 Windows 11 的 mica 效果
+### 快速运行
+```bash
+npm install
+npm start
+```
+
+> 注意：使用此方式启动的 Open 无法正常接管网页链接，你必须使用打包版本，仅用于测试目的；
+
+### 打包
+```bash
+npm run pack
+```
+
+打包输出在 `dist` 目录。
+
+## 简单教程
+1. 启动后先进入设置页，按欢迎向导走完基础配置。
+2. 在“设置默认浏览器”里点击“添加 Open”，再打开系统默认应用页完成默认关联。
+3. 在“浏览器”里点击“扫描已安装浏览器”，确认启用你常用的浏览器。
+4. 需要的话在“浏览器”中新增自定义浏览器，并用“验证规则”检查可启动性、配置文件和头像检测结果。
+5. 用 `npm run link` 或设置页里的测试按钮验证 chooser 是否正常弹出。
+
+## 核心特性
+- 链接/HTML 文件统一路由到浏览器选择器
+- 浏览器配置文件选择与搜索
+- 自定义浏览器规则（可视化编辑 + 预验证）
+- 配置文件管理（打开、重命名、复制、删除、会话内撤销）
+- 多语言界面（`zh-CN` / `zh-TW` / `en-US`）
+- 便携数据目录（`OpenData`）
 
 ## 便携模式
 - 用户数据保存在 `OpenData` 目录
@@ -40,35 +46,25 @@ Open 是一款便携式网页链接打开方式管理器，用于在接管网页
 
 ## 浏览器检测与配置文件
 - 所有内置浏览器规则来自 `src/main/browsers.json`
-- 默认支持 Edge, Edge Beta, Edge Dev, Edge Canary, Chrome, Chrome Beta, Chrome Dev, Chrome Canary, Firefox, Brave, Vivaldi, Chromium
-- 浏览器列表默认仅展示已检测到的浏览器
-- 系统浏览器：只读规则、不可编辑；启用/禁用状态保存在 `systemBrowsers`
-- 自定义浏览器：规则保存于 `customBrowsers`，可编辑
-- 内置浏览器不会写入配置文件（保存时自动剔除）
-- Chooser 的 Tabs 使用浏览器 exe 图标显示（不显示文字）；未检测到则显示浏览器图标
-- 配置文件删除后会记录到 `excludedProfiles`，后续扫描不会再显示
+- 默认支持：Edge/Chrome/Firefox/Brave/Vivaldi/Chromium（含多个通道）
+- 系统浏览器规则只读，启用状态保存在 `systemBrowsers`
+- 自定义浏览器规则保存在 `customBrowsers`
+- 配置文件删除后写入 `excludedProfiles`，后续扫描默认不再显示
 
-## 调试模式
-- 设置页可开启调试模式以展示全部浏览器
-- 也可使用环境变量 `OPEN_DEBUG` 或 `OPEN_DEBUG_MODE` 强制开启
-
-## 环境变量与路径
-- Windows 使用 `ProgramFiles`, `ProgramFiles(x86)`, `LOCALAPPDATA`, `APPDATA`
-
-## 协议与文件关联
-- 运行时注册 HTTP, HTTPS 协议
-- Windows 通过注册表加入系统浏览器列表
-
-## i18n
-- 文案位于 `locales`，优先英文，英文为回退
-- 支持语言：`zh-CN` / `zh-TW` / `en-US`（设置页可切换语言）
-
-## 开发测试
-- `npm install`: 安装依赖
-- `npm start`：启动设置页面
+## 开发测试命令
+- `npm start`：启动设置页
 - `npm run link`：用测试链接拉起 chooser
 - `npm run file`：用测试 HTML 文件拉起 chooser
-- 设置页调试模式提供：测试链接打开 / 测试文件打开
+
+## 项目结构
+- `src/main/index.js`：主进程入口（单实例、协议处理、窗口生命周期）
+- `src/main/config.js`：配置读写与合并
+- `src/main/browsers.js`：浏览器检测、配置文件扫描、启动参数构建
+- `src/main/windows-browser.js`：Windows 浏览器注册/清理
+- `src/renderer/settings.*`：设置页 UI 与逻辑
+- `src/renderer/chooser.*`：选择器 UI 与逻辑
+- `src/renderer/manager.*`：配置文件管理视图
+- `locales/*`：多语言文案
 
 ## Star History
 
