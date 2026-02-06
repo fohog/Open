@@ -289,7 +289,6 @@ async function prepareChooserPayload(target) {
   const locale = resolveLocale(scanned.locale);
   const dict = loadLocale(locale);
   const normalized = normalizeTarget(target);
-  const browserIcons = await getBrowserIcons(scanned);
   return {
     target: normalized,
     targetKind: normalized.toLowerCase().startsWith('file:') ? 'file' : 'link',
@@ -298,7 +297,7 @@ async function prepareChooserPayload(target) {
     theme: getThemePayload(),
     locale,
     dict,
-    browserIcons
+    browserIcons: {}
   };
 }
 
@@ -472,7 +471,8 @@ app.on('browser-window-created', (_event, win) => {
 });
 
 ipcMain.handle('get-state', async () => {
-  const config = loadConfig();
+  const baseConfig = loadConfig();
+  const config = scanBuiltInBrowsers(baseConfig);
   const locale = resolveLocale(config.locale);
   const dict = loadLocale(locale);
   return {
@@ -488,6 +488,11 @@ ipcMain.handle('get-state', async () => {
 
 ipcMain.handle('get-manager-state', async () => {
   return await prepareManagerPayload();
+});
+
+ipcMain.handle('get-browser-icons', async () => {
+  const config = scanBuiltInBrowsers(loadConfig());
+  return await getBrowserIcons(config);
 });
 
 ipcMain.handle('save-config', (_event, nextConfig) => {

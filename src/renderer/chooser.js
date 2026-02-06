@@ -33,6 +33,7 @@ function ensureApiBridge() {
     saveConfig: asyncFalse,
     scanBrowsers: asyncFalse,
     scanManager: asyncFalse,
+    getBrowserIcons: async () => ({}),
     pickExecutable: asyncEmpty,
     pickFolder: asyncEmpty,
     openTarget: asyncFalse,
@@ -140,6 +141,19 @@ function applyIconGlyphs() {
       node.textContent = glyphs[key];
     }
   });
+}
+
+async function refreshBrowserIcons() {
+  try {
+    const icons = await window.api.getBrowserIcons();
+    if (icons && typeof icons === 'object') {
+      browserIcons = icons;
+      renderTabs();
+      renderTabContent();
+    }
+  } catch (err) {
+    // ignore
+  }
 }
 
 function isIconDataUrl(value) {
@@ -787,6 +801,7 @@ function handleInitPayload(payload) {
   applyTheme(payload.theme);
   window.api.onTheme(applyTheme);
   initUI();
+  void refreshBrowserIcons();
 }
 
 window.api.onInit((payload) => {

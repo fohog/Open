@@ -6,6 +6,7 @@ contextBridge.exposeInMainWorld('api', {
   saveConfig: (config) => ipcRenderer.invoke('save-config', config),
   scanBrowsers: () => ipcRenderer.invoke('scan-browsers'),
   validateBrowserRule: (rule) => ipcRenderer.invoke('validate-browser-rule', { rule }),
+  getBrowserIcons: () => ipcRenderer.invoke('get-browser-icons'),
   scanManager: () => ipcRenderer.invoke('manager-scan'),
   pickExecutable: () => ipcRenderer.invoke('pick-executable'),
   pickFolder: () => ipcRenderer.invoke('pick-folder'),

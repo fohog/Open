@@ -196,6 +196,7 @@ async function saveAndRescan(message) {
     config = updated;
   }
   renderBrowsers();
+  void refreshBrowserIconsAndRender();
   if (message) setStatus(message);
 }
 
@@ -339,6 +340,19 @@ function updateIntegrationUI() {
   unregisterBtn.style.display = registered ? '' : 'none';
   updateRoutingUI();
   updateOnboardingIntegrationStatus();
+}
+
+async function refreshBrowserIconsAndRender() {
+  try {
+    const icons = await window.api.getBrowserIcons();
+    if (icons && typeof icons === 'object') {
+      browserIcons = icons;
+      renderBrowsers();
+      renderOnboardingBrowserList();
+    }
+  } catch (err) {
+    // ignore
+  }
 }
 
 function updateRoutingUI() {
@@ -1306,6 +1320,7 @@ function bindOnboarding(forceShow = false) {
       renderBrowsers();
       renderOnboardingBrowserList();
       updateOnboardingIntegrationStatus();
+      void refreshBrowserIconsAndRender();
     };
   }
   if (register) {
@@ -1366,6 +1381,7 @@ async function init() {
   renderBrowsers();
   bindControlToggles();
   initSidebar();
+  void refreshBrowserIconsAndRender();
 
   const avatarSelect = document.getElementById('avatar-preference');
   if (avatarSelect) {
@@ -1600,6 +1616,7 @@ async function init() {
     renderBrowsers();
     bindControlToggles();
     setStatus(t('settings.status.scanDone'));
+    void refreshBrowserIconsAndRender();
   });
   const addCustomBtn = document.getElementById('add-custom-browser');
   if (addCustomBtn) {
