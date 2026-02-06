@@ -27,7 +27,6 @@ contextBridge.exposeInMainWorld('api', {
   showProfileMenu: (payload) => ipcRenderer.invoke('show-profile-menu', payload),
   registerBrowser: () => ipcRenderer.invoke('register-browser'),
   unregisterBrowser: () => ipcRenderer.invoke('unregister-browser'),
-  checkBrowser: () => ipcRenderer.invoke('check-browser'),
   showSettings: () => ipcRenderer.invoke('show-settings'),
   showManager: () => ipcRenderer.invoke('show-manager'),
   showBrowserMenu: (payload) => ipcRenderer.invoke('show-browser-menu', payload),

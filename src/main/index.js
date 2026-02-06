@@ -42,9 +42,6 @@ const {
 } = require('./windows');
 const { chooserWindow } = require('./windows');
 const {
-  isRegistered,
-  isDefaultBrowser,
-  getDefaultBrowserProgIds,
   registerBrowser,
   unregisterBrowser,
   updateBrowserAssociations
@@ -139,14 +136,6 @@ function consumeUndoDeleteBatch(token) {
   if (entry.timer) clearTimeout(entry.timer);
   if (Number(entry.expiresAt) < Date.now()) return null;
   return entry;
-}
-
-function getIntegrationState() {
-  return {
-    registered: isRegistered(),
-    isDefault: isDefaultBrowser(),
-    defaultProgIds: getDefaultBrowserProgIds()
-  };
 }
 
 function validateBrowserRule(ruleInput) {
@@ -483,21 +472,17 @@ app.on('browser-window-created', (_event, win) => {
 });
 
 ipcMain.handle('get-state', async () => {
-  const baseConfig = loadConfig();
-  const config = scanBuiltInBrowsers(baseConfig);
+  const config = loadConfig();
   const locale = resolveLocale(config.locale);
   const dict = loadLocale(locale);
-  const integration = getIntegrationState();
   return {
     config,
     locale,
     dict,
     debugOverride: isDebugOverride(),
-    integration,
-    browserRegistered: integration.registered,
     theme: getThemePayload(),
     browserRules: getBaseBrowserRules(),
-    browserIcons: await getBrowserIcons(config)
+    browserIcons: {}
   };
 });
 
@@ -1275,17 +1260,23 @@ ipcMain.handle('register-browser', () => {
   const result = registerBrowser();
   if (result && result.ok) {
     const config = loadConfig();
+    if (!config.integration || typeof config.integration !== 'object') config.integration = {};
+    config.integration.registered = true;
     updateBrowserAssociations(config.associations);
+    saveConfig(config);
   }
   return result;
 });
 
 ipcMain.handle('unregister-browser', () => {
-  return unregisterBrowser();
-});
-
-ipcMain.handle('check-browser', () => {
-  return getIntegrationState();
+  const result = unregisterBrowser();
+  if (result && result.ok) {
+    const config = loadConfig();
+    if (!config.integration || typeof config.integration !== 'object') config.integration = {};
+    config.integration.registered = false;
+    saveConfig(config);
+  }
+  return result;
 });
 
 

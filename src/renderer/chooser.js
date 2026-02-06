@@ -96,21 +96,6 @@ function ensureApiBridge() {
 
 const api = ensureApiBridge();
 
-const tabOrder = [
-  'edge',
-  'edge-beta',
-  'edge-dev',
-  'edge-canary',
-  'chrome',
-  'chrome-beta',
-  'chrome-dev',
-  'chrome-canary',
-  'firefox',
-  'brave',
-  'vivaldi',
-  'chromium'
-];
-
 function t(key) {
   return dict[key] || key;
 }
@@ -177,14 +162,7 @@ function isLastUsed(browserId, profileId) {
 
 function getBrowserIds() {
   const all = config && config.browsers ? Object.keys(config.browsers) : [];
-  const ordered = [];
-  tabOrder.forEach((id) => {
-    if (all.includes(id) && !ordered.includes(id)) ordered.push(id);
-  });
-  all.forEach((id) => {
-    if (!ordered.includes(id)) ordered.push(id);
-  });
-  return ordered.filter(isBrowserVisible);
+  return all.filter(isBrowserVisible);
 }
 
 function renderTabs() {

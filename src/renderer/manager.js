@@ -556,7 +556,7 @@ function renderTable() {
   initSortHandlers();
   updateSortIndicators();
   syncSelectAll();
-  if (sortState && sortState.key === 'size') {
+  if (visibleRows.length > 0) {
     prefetchAllSizes(visibleRows, renderToken);
   }
 }

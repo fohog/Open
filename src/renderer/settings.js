@@ -195,11 +195,6 @@ async function saveAndRescan(message) {
   if (updated) {
     config = updated;
   }
-  const refreshed = await window.api.getState();
-  if (refreshed) {
-    browserIcons = refreshed.browserIcons || {};
-    config = refreshed.config || config;
-  }
   renderBrowsers();
   if (message) setStatus(message);
 }
@@ -346,17 +341,6 @@ function updateIntegrationUI() {
   updateOnboardingIntegrationStatus();
 }
 
-async function refreshIntegrationState() {
-  const result = await window.api.checkBrowser();
-  if (!result) return;
-  integrationState = {
-    registered: Boolean(result.registered),
-    isDefault: Boolean(result.isDefault),
-    defaultProgIds: result.defaultProgIds || { http: '', https: '' }
-  };
-  updateIntegrationUI();
-}
-
 function updateRoutingUI() {
   const toggle = document.getElementById('routing-chooser-toggle');
   if (!toggle) return;
@@ -387,7 +371,11 @@ function applyDebug() {
 async function registerSystemBrowser() {
   const result = await window.api.registerBrowser();
   if (result && result.ok) {
-    await refreshIntegrationState();
+    if (!config.integration || typeof config.integration !== 'object') config.integration = {};
+    config.integration.registered = true;
+    integrationState.registered = true;
+    await window.api.saveConfig(config);
+    updateIntegrationUI();
     setStatus(t('settings.status.saved'));
   } else {
     setStatus(t('settings.status.failed'));
@@ -397,7 +385,11 @@ async function registerSystemBrowser() {
 async function unregisterSystemBrowser() {
   const result = await window.api.unregisterBrowser();
   if (result && result.ok) {
-    await refreshIntegrationState();
+    if (!config.integration || typeof config.integration !== 'object') config.integration = {};
+    config.integration.registered = false;
+    integrationState.registered = false;
+    await window.api.saveConfig(config);
+    updateIntegrationUI();
     setStatus(t('settings.status.saved'));
   } else {
     setStatus(t('settings.status.failed'));
@@ -1311,11 +1303,6 @@ function bindOnboarding(forceShow = false) {
     scan.onclick = async () => {
       const updated = await window.api.scanBrowsers();
       if (updated) config = updated;
-      const refreshed = await window.api.getState();
-      if (refreshed && refreshed.config) {
-        config = refreshed.config;
-        integrationState = refreshed.integration || integrationState;
-      }
       renderBrowsers();
       renderOnboardingBrowserList();
       updateOnboardingIntegrationStatus();
@@ -1324,7 +1311,6 @@ function bindOnboarding(forceShow = false) {
   if (register) {
     register.onclick = async () => {
       await registerSystemBrowser();
-      await refreshIntegrationState();
       updateOnboardingIntegrationStatus();
     };
   }
@@ -1360,11 +1346,11 @@ async function init() {
   config = state.config;
   dict = state.dict || {};
   debugOverride = Boolean(state.debugOverride);
-  const integration = state.integration || {};
+  const cachedIntegration = config && config.integration ? config.integration : {};
   integrationState = {
-    registered: Boolean(integration.registered || state.browserRegistered),
-    isDefault: Boolean(integration.isDefault),
-    defaultProgIds: integration.defaultProgIds || { http: '', https: '' }
+    registered: Boolean(cachedIntegration.registered),
+    isDefault: false,
+    defaultProgIds: cachedIntegration.defaultProgIds || { http: '', https: '' }
   };
   browserRules = Array.isArray(state.browserRules) ? state.browserRules : [];
   browserIcons = state.browserIcons || {};
@@ -1611,11 +1597,6 @@ async function init() {
   document.getElementById('scan-browsers').addEventListener('click', async () => {
     const updated = await window.api.scanBrowsers();
     config = updated;
-    const refreshed = await window.api.getState();
-    if (refreshed) {
-      browserIcons = refreshed.browserIcons || {};
-      config = refreshed.config || config;
-    }
     renderBrowsers();
     bindControlToggles();
     setStatus(t('settings.status.scanDone'));
