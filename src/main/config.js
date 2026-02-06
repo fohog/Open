@@ -75,6 +75,10 @@ function getConfigPath() {
 function deepMerge(target, source) {
   if (!source || typeof source !== 'object') return target;
   for (const key of Object.keys(source)) {
+    // Prevent prototype pollution via special property names
+    if (key === '__proto__' || key === 'constructor' || key === 'prototype') {
+      continue;
+    }
     if (source[key] && typeof source[key] === 'object' && !Array.isArray(source[key])) {
       if (!target[key] || typeof target[key] !== 'object') target[key] = {};
       deepMerge(target[key], source[key]);
