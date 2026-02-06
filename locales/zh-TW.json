@@ -151,8 +151,6 @@
   "manager.undo.ask": "設定檔已刪除，是否立即復原？",
   "manager.undo.done": "已復原",
   "settings.status.failed": "失敗",
-  "settings.integration.status.default": "Open 已新增，且目前為預設瀏覽器",
-  "settings.integration.status.registeredOnly": "Open 已新增，但尚未設為預設瀏覽器",
   "settings.custom.validate.action": "驗證規則",
   "settings.custom.validate.pending": "尚未驗證",
   "settings.custom.validate.invalidRule": "規則無效",

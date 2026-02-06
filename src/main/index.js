@@ -43,8 +43,11 @@ const {
 const { chooserWindow } = require('./windows');
 const {
   isRegistered,
+  isDefaultBrowser,
+  getDefaultBrowserProgIds,
   registerBrowser,
-  unregisterBrowser
+  unregisterBrowser,
+  updateBrowserAssociations
 } = require('./windows-browser');
 
 let pendingTarget = null;
@@ -141,8 +144,8 @@ function consumeUndoDeleteBatch(token) {
 function getIntegrationState() {
   return {
     registered: isRegistered(),
-    isDefault: false,
-    defaultProgIds: { http: '', https: '' }
+    isDefault: isDefaultBrowser(),
+    defaultProgIds: getDefaultBrowserProgIds()
   };
 }
 
@@ -529,6 +532,7 @@ ipcMain.handle('set-associations', (_event, associations) => {
   config.associations = Object.assign({}, config.associations, associations || {});
   saveConfig(config);
   registerDefaultHandlers(config.associations);
+  updateBrowserAssociations(config.associations);
   return { ok: true };
 });
 
@@ -1268,7 +1272,12 @@ systemPreferences.on('accent-color-changed', () => {
 });
 
 ipcMain.handle('register-browser', () => {
-  return registerBrowser();
+  const result = registerBrowser();
+  if (result && result.ok) {
+    const config = loadConfig();
+    updateBrowserAssociations(config.associations);
+  }
+  return result;
 });
 
 ipcMain.handle('unregister-browser', () => {

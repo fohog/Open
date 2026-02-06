@@ -1078,9 +1078,10 @@ function renderOnboardingBrowserList() {
     main.appendChild(name);
     const toggleWrap = document.createElement('label');
     toggleWrap.className = 'toggle';
-    const toggle = document.createElement('input');
-    toggle.type = 'checkbox';
+    let toggle = null;
     if (builtIn.has(id)) {
+      toggle = document.createElement('input');
+      toggle.type = 'checkbox';
       ensureSystemBrowserState(id);
       toggle.checked = config.systemBrowsers[id].enabled !== false;
       toggle.addEventListener('change', async () => {
@@ -1090,12 +1091,24 @@ function renderOnboardingBrowserList() {
         renderBrowsers();
       });
     } else {
+      toggle = document.createElement('input');
+      toggle.type = 'checkbox';
       ensureBrowserConfig(id, browser.displayName || id);
       toggle.checked = config.browsers[id].enabled !== false;
       toggle.addEventListener('change', async () => {
         config.browsers[id].enabled = toggle.checked;
         await window.api.saveConfig(config);
         renderBrowsers();
+      });
+    }
+    if (toggle) {
+      main.addEventListener('click', (event) => {
+        const target = event.target;
+        if (!target) return;
+        if (target.closest('button')) return;
+        if (target.closest('input')) return;
+        toggle.checked = !toggle.checked;
+        toggle.dispatchEvent(new Event('change', { bubbles: true }));
       });
     }
     toggleWrap.appendChild(toggle);

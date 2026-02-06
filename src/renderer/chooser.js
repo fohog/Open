@@ -1,3 +1,7 @@
+(() => {
+  if (typeof window !== 'undefined' && window.__openChooserLoaded) return;
+  if (typeof window !== 'undefined') window.__openChooserLoaded = true;
+
 let dict = {};
 let config = null;
 let target = '';
@@ -817,3 +821,5 @@ window.api.onBlur(() => {
     window.api.closeChooser();
   }
 });
+
+})();

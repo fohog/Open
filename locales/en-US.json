@@ -151,8 +151,6 @@
   "manager.undo.ask": "Profiles deleted. Undo now?",
   "manager.undo.done": "Restored",
   "settings.status.failed": "Failed",
-  "settings.integration.status.default": "Open added and currently default",
-  "settings.integration.status.registeredOnly": "Open added but not default yet",
   "settings.custom.validate.action": "Validate rule",
   "settings.custom.validate.pending": "Validation not run",
   "settings.custom.validate.invalidRule": "Rule is invalid",

@@ -143,6 +143,43 @@ function registerBrowser() {
   return { ok: true };
 }
 
+function normalizeAssociations(associations) {
+  const assoc = associations || {};
+  return {
+    http: assoc.http !== false,
+    https: assoc.https !== false,
+    files: assoc.files !== false
+  };
+}
+
+function updateBrowserAssociations(associations) {
+  if (process.platform !== 'win32') return { ok: false, message: 'Unsupported platform' };
+  if (!isRegistered()) return { ok: false, message: 'Not registered' };
+  const assoc = normalizeAssociations(associations);
+  const urlKey = `HKCU\\${CAPABILITIES_PATH}\\URLAssociations`;
+  const fileKey = `HKCU\\${CAPABILITIES_PATH}\\FileAssociations`;
+  const steps = [];
+  const addOrRemove = (keyPath, valueName, enabled, value) => {
+    if (enabled) {
+      steps.push(['add', keyPath, '/v', valueName, '/t', 'REG_SZ', '/d', value, '/f']);
+    } else {
+      steps.push(['delete', keyPath, '/v', valueName, '/f']);
+    }
+  };
+  addOrRemove(urlKey, 'http', assoc.http, 'OpenURL');
+  addOrRemove(urlKey, 'https', assoc.https, 'OpenURL');
+  addOrRemove(fileKey, '.html', assoc.files, 'OpenHTML');
+  addOrRemove(fileKey, '.htm', assoc.files, 'OpenHTML');
+  addOrRemove(fileKey, '.mshtml', assoc.files, 'OpenHTML');
+  addOrRemove(fileKey, '.xhtml', assoc.files, 'OpenHTML');
+
+  for (const args of steps) {
+    const result = runReg(args);
+    if (!result.ok && args[0] === 'add') return { ok: false, message: result.stderr || result.stdout };
+  }
+  return { ok: true };
+}
+
 function unregisterBrowser() {
   if (process.platform !== 'win32') return { ok: false, message: 'Unsupported platform' };
   const steps = [
@@ -163,5 +200,6 @@ module.exports = {
   isDefaultBrowser,
   getDefaultBrowserProgIds,
   registerBrowser,
-  unregisterBrowser
+  unregisterBrowser,
+  updateBrowserAssociations
 };

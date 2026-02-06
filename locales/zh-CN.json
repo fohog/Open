@@ -151,8 +151,6 @@
   "manager.undo.ask": "配置文件已删除，是否立即撤销？",
   "manager.undo.done": "已恢复",
   "settings.status.failed": "失败",
-  "settings.integration.status.default": "Open 已添加，且当前为默认浏览器",
-  "settings.integration.status.registeredOnly": "Open 已添加，但尚未设为默认浏览器",
   "settings.custom.validate.action": "验证规则",
   "settings.custom.validate.pending": "尚未验证",
   "settings.custom.validate.invalidRule": "规则无效",

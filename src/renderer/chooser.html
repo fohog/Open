@@ -1,74 +1,68 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Open</title>
-    <link rel="stylesheet" href="main.css" />
-    <link rel="stylesheet" href="chooser.css" />
-  </head>
-  <body>
-    <div class="chooser">
-      <div class="chooser-dragbar"></div>
-      <div class="chooser-header">
-        <div class="title" data-i18n="chooser.question"></div>
-      </div>
-      
-      <div class="search-box chooser-target-box" id="chooser-target-box">
-        <span class="fluent-icon" data-icon="link" id="chooser-link-menu-trigger"></span>
-        <input
-          class="input search-input"
-          id="chooser-target-input"
-          type="text"
-          data-i18n-placeholder="chooser.text.placeholder"
-          autocomplete="off"
-        />
-      </div>
-      <div class="search-box chooser-search-box" id="chooser-search-box">
-        <span class="fluent-icon" data-icon="search"></span>
-        <input
-          class="input search-input"
-          id="chooser-search-input"
-          type="search"
-          data-i18n-placeholder="chooser.search.placeholder"
-          autocomplete="off"
-        />
-      </div>
-      <div class="tabs" id="tabs"></div>
-      <div class="chooser-content" id="tab-content"></div>
 
-      <div class="actions sticky-actions">
-        <button class="button secondary" id="copy-btn">
-          <span class="fluent-icon" data-icon="copy"></span>
-          <span data-i18n="chooser.copy"></span>
-        </button>
-        <button class="button secondary m-right-auto" id="settings-btn">
-          <span class="fluent-icon" data-icon="settings"></span>
-          <span data-i18n="chooser.settings"></span>
-        </button>
-        <button class="button ghost" id="cancel-btn">
-          <span class="fluent-icon" data-icon="close"></span>
-          <span data-i18n="chooser.cancel"></span>
-        </button>
-        <button class="button" id="open-btn">
-          <span class="fluent-icon" data-icon="open"></span>
-          <span data-i18n="chooser.open"></span>
-        </button>
-      </div>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Open</title>
+  <link rel="stylesheet" href="main.css" />
+  <link rel="stylesheet" href="chooser.css" />
+</head>
+
+<body>
+  <div class="chooser">
+    <div class="chooser-dragbar"></div>
+    <div class="chooser-header">
+      <div class="title" data-i18n="chooser.question"></div>
     </div>
 
-    <dialog class="chooser-dialog" id="rename-dialog">
-      <div class="chooser-dialog-title" data-i18n="manager.rename"></div>
-      <div class="chooser-dialog-body">
-        <div class="section-desc" style="margin-bottom: 5px;" data-i18n="manager.renamePrompt"></div>
-        <input class="input" id="rename-input" type="text" />
-      </div>
-      <div class="chooser-dialog-actions">
-        <button class="button ghost" id="rename-cancel" type="button" data-i18n="manager.cancel"></button>
-        <button class="button" id="rename-confirm" type="button" data-i18n="manager.confirm"></button>
-      </div>
-    </dialog>
+    <div class="search-box chooser-target-box" id="chooser-target-box">
+      <span class="fluent-icon" data-icon="link" id="chooser-link-menu-trigger"></span>
+      <input class="input search-input" id="chooser-target-input" type="text"
+        data-i18n-placeholder="chooser.text.placeholder" autocomplete="off" />
+    </div>
+    <div class="search-box chooser-search-box" id="chooser-search-box">
+      <span class="fluent-icon" data-icon="search"></span>
+      <input class="input search-input" id="chooser-search-input" type="search"
+        data-i18n-placeholder="chooser.search.placeholder" autocomplete="off" />
+    </div>
+    
+    <div class="tabs" id="tabs"></div>
+    <div class="chooser-content" id="tab-content"></div>
 
-    <script src="chooser.js"></script>
-  </body>
+    <div class="actions sticky-actions">
+      <button class="button secondary" id="copy-btn">
+        <span class="fluent-icon" data-icon="copy"></span>
+        <span data-i18n="chooser.copy"></span>
+      </button>
+      <button class="button secondary m-right-auto" id="settings-btn">
+        <span class="fluent-icon" data-icon="settings"></span>
+        <span data-i18n="chooser.settings"></span>
+      </button>
+      <button class="button ghost" id="cancel-btn">
+        <span class="fluent-icon" data-icon="close"></span>
+        <span data-i18n="chooser.cancel"></span>
+      </button>
+      <button class="button" id="open-btn">
+        <span class="fluent-icon" data-icon="open"></span>
+        <span data-i18n="chooser.open"></span>
+      </button>
+    </div>
+  </div>
+
+  <dialog class="chooser-dialog" id="rename-dialog">
+    <div class="chooser-dialog-title" data-i18n="manager.rename"></div>
+    <div class="chooser-dialog-body">
+      <div class="section-desc" style="margin-bottom: 5px;" data-i18n="manager.renamePrompt"></div>
+      <input class="input" id="rename-input" type="text" />
+    </div>
+    <div class="chooser-dialog-actions">
+      <button class="button ghost" id="rename-cancel" type="button" data-i18n="manager.cancel"></button>
+      <button class="button" id="rename-confirm" type="button" data-i18n="manager.confirm"></button>
+    </div>
+  </dialog>
+
+  <script src="chooser.js"></script>
+</body>
+
 </html>
