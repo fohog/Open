@@ -9,6 +9,9 @@ on:
       - "**"
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 jobs:
   pack:
     runs-on: windows-latest
