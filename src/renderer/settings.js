@@ -134,6 +134,10 @@ function t(key) {
 function mergeObjects(target, source) {
   if (!source || typeof source !== 'object') return target;
   for (const key of Object.keys(source)) {
+    // Prevent prototype pollution
+    if (key === '__proto__' || key === 'constructor' || key === 'prototype') {
+      continue;
+    }
     const next = source[key];
     if (next && typeof next === 'object' && !Array.isArray(next)) {
       if (!target[key] || typeof target[key] !== 'object') target[key] = {};
