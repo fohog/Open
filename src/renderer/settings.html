@@ -413,203 +413,126 @@
 
   <div class="onboarding-overlay hidden" id="onboarding-overlay">
     <div class="onboarding-card">
-      <div class="onboarding-layout">
-        <div class="onboarding-sidebar">
-          <div class="onboarding-hero">
-            <div class="onboarding-hero-icon">
-              <span class="fluent-icon" data-icon="app"></span>
-            </div>
-            <div class="onboarding-hero-text">
-              <h2 class="onboarding-title" data-i18n="onboarding.title"></h2>
-              <div class="section-desc" id="onboarding-step-indicator"></div>
-            </div>
+      <div class="onboarding-head">
+        <div class="onboarding-hero">
+          <div class="onboarding-hero-icon">
+            <span class="fluent-icon" data-icon="app"></span>
           </div>
-          <div class="onboarding-step-list">
-            <button class="onboarding-step-item" type="button" data-step-index="0">
-              <span class="fluent-icon" data-icon="browser"></span>
-              <span data-i18n="onboarding.step.preview"></span>
-            </button>
-            <button class="onboarding-step-item" type="button" data-step-index="1">
-              <span class="fluent-icon" data-icon="shield"></span>
-              <span data-i18n="onboarding.step.integration"></span>
-            </button>
-            <button class="onboarding-step-item" type="button" data-step-index="2">
-              <span class="fluent-icon" data-icon="refresh"></span>
-              <span data-i18n="onboarding.step.scan"></span>
-            </button>
-            <button class="onboarding-step-item" type="button" data-step-index="3">
-              <span class="fluent-icon" data-icon="language"></span>
-              <span data-i18n="onboarding.step.preferences"></span>
-            </button>
-            <button class="onboarding-step-item" type="button" data-step-index="4">
-              <span class="fluent-icon" data-icon="save"></span>
-              <span data-i18n="onboarding.step.done"></span>
-            </button>
+          <div class="onboarding-hero-text">
+            <h2 class="onboarding-title" data-i18n="onboarding.title"></h2>
+            <div class="section-desc" id="onboarding-step-indicator"></div>
           </div>
         </div>
-        <div class="onboarding-main">
-          <div class="onboarding-pages">
-            <section class="onboarding-page" data-step="0">
-              <div class="onboarding-split">
-                <div class="onboarding-pane">
-                  <div class="control onboarding-control">
-                    <div class="control-title">
-                      <span class="fluent-icon" data-icon="browser"></span>
-                      <span data-i18n="onboarding.page1.desc"></span>
-                    </div>
-                  </div>
-                </div>
-                <div class="onboarding-preview-shell">
-                  <iframe
-                    id="onboarding-preview-frame"
-                    class="onboarding-preview"
-                    src="chooser.html?preview=1&target=https%3A%2F%2Fwww.google.com"
-                    title="Chooser preview"
-                  ></iframe>
-                </div>
+      </div>
+      <div class="onboarding-content">
+        <div class="onboarding-pages">
+          <section class="onboarding-page" data-step="0">
+            <div class="onboarding-info" data-i18n="onboarding.page1.desc"></div>
+            <div class="onboarding-info" data-i18n="onboarding.page2.desc"></div>
+            <div class="onboarding-item">
+              <div class="control-title">
+                <span class="fluent-icon" data-icon="shield"></span>
+                <span data-i18n="settings.integration.defaultAction"></span>
               </div>
-            </section>
-            <section class="onboarding-page hidden" data-step="1">
-              <div class="control onboarding-control">
-                <div class="control-title">
-                  <span class="fluent-icon" data-icon="shield"></span>
-                  <span data-i18n="onboarding.page2.desc"></span>
-                </div>
-              </div>
-              <div class="control onboarding-control">
-                <div class="control-title">
-                  <span class="fluent-icon" data-icon="add"></span>
-                  <span data-i18n="settings.browsers.add"></span>
-                </div>
-                <div class="inline-actions">
-                  <button class="button ghost" id="onboarding-add-custom" type="button">
-                    <span class="fluent-icon" data-icon="add"></span>
-                    <span data-i18n="settings.browsers.add"></span>
-                  </button>
-                </div>
-              </div>
-              <div class="control onboarding-control">
-                <div class="control-title">
+              <div class="inline-actions">
+                <button class="button ghost" id="onboarding-register" type="button">
                   <span class="fluent-icon" data-icon="shield"></span>
                   <span data-i18n="settings.integration.register"></span>
-                </div>
-                <div class="inline-actions">
-                  <button class="button ghost" id="onboarding-register" type="button">
-                    <span class="fluent-icon" data-icon="shield"></span>
-                    <span data-i18n="settings.integration.register"></span>
-                  </button>
-                  <button class="button ghost" id="onboarding-open-defaults" type="button">
-                    <span class="fluent-icon" data-icon="open"></span>
-                    <span data-i18n="settings.integration.defaultAction"></span>
-                  </button>
-                </div>
+                </button>
+                <button class="button ghost" id="onboarding-open-defaults" type="button">
+                  <span class="fluent-icon" data-icon="open"></span>
+                  <span data-i18n="settings.integration.defaultAction"></span>
+                </button>
               </div>
-              <div class="status" id="onboarding-integration-status"></div>
-            </section>
-            <section class="onboarding-page hidden" data-step="2">
-              <div class="control onboarding-control">
-                <div class="control-title">
+            </div>
+            <div class="status" id="onboarding-integration-status"></div>
+          </section>
+          <section class="onboarding-page hidden" data-step="1">
+            <div class="onboarding-info" data-i18n="onboarding.page3.desc"></div>
+            <div class="onboarding-item">
+              <div class="inline-actions">
+                <button class="button" id="onboarding-scan" type="button">
                   <span class="fluent-icon" data-icon="refresh"></span>
-                  <span data-i18n="onboarding.page3.desc"></span>
-                </div>
-                <div class="inline-actions">
-                  <button class="button" id="onboarding-scan" type="button">
-                    <span class="fluent-icon" data-icon="refresh"></span>
-                    <span data-i18n="settings.browsers.scan"></span>
-                  </button>
-                </div>
+                  <span data-i18n="settings.browsers.scan"></span>
+                </button>
               </div>
-              <div class="onboarding-browser-list" id="onboarding-browser-list"></div>
-            </section>
-            <section class="onboarding-page hidden" data-step="3">
-              <div class="control onboarding-control">
-                <div class="control-title">
-                  <span class="fluent-icon" data-icon="language"></span>
-                  <span data-i18n="onboarding.page4.desc"></span>
-                </div>
+            </div>
+            <div class="onboarding-browser-list" id="onboarding-browser-list"></div>
+          </section>
+          <section class="onboarding-page hidden" data-step="2">
+            <div class="onboarding-info" data-i18n="onboarding.page4.desc"></div>
+            <div class="onboarding-item">
+              <div class="control-title">
+                <span class="fluent-icon" data-icon="language"></span>
+                <span data-i18n="settings.language.label"></span>
               </div>
-              <div class="control onboarding-control">
-                <div class="control-title">
-                  <span class="fluent-icon" data-icon="language"></span>
-                  <span data-i18n="settings.language.label"></span>
-                </div>
-                <div class="inline-actions">
-                  <select class="input" id="onboarding-language-select">
-                    <option value="zh-CN" data-i18n="settings.language.zhCN"></option>
-                    <option value="zh-TW" data-i18n="settings.language.zhTW"></option>
-                    <option value="en-US" data-i18n="settings.language.enUS"></option>
-                  </select>
-                </div>
+              <div class="inline-actions">
+                <select class="input" id="onboarding-language-select">
+                  <option value="zh-CN" data-i18n="settings.language.zhCN"></option>
+                  <option value="zh-TW" data-i18n="settings.language.zhTW"></option>
+                  <option value="en-US" data-i18n="settings.language.enUS"></option>
+                </select>
               </div>
-              <div class="control onboarding-control">
-                <div class="control-title">
-                  <span class="fluent-icon" data-icon="window"></span>
-                  <span data-i18n="settings.appearance.effect.label"></span>
-                </div>
-                <div class="inline-actions">
-                  <select class="input" id="onboarding-window-effect">
-                    <option value="mica" data-i18n="settings.appearance.effect.mica"></option>
-                    <option value="acrylic" data-i18n="settings.appearance.effect.acrylic"></option>
-                    <option value="tabbed" data-i18n="settings.appearance.effect.tabbed"></option>
-                  </select>
-                </div>
+            </div>
+            <div class="onboarding-item">
+              <div class="control-title">
+                <span class="fluent-icon" data-icon="window"></span>
+                <span data-i18n="settings.appearance.effect.label"></span>
               </div>
-              <div class="control onboarding-control">
-                <div class="control-title">
-                  <span class="fluent-icon" data-icon="search"></span>
-                  <span data-i18n="settings.appearance.inputMode.label"></span>
-                </div>
-                <div class="inline-actions">
-                  <select class="input" id="onboarding-input-mode">
-                    <option value="link" data-i18n="settings.appearance.inputMode.link"></option>
-                    <option value="search" data-i18n="settings.appearance.inputMode.search"></option>
-                    <option value="hidden" data-i18n="settings.appearance.inputMode.hidden"></option>
-                  </select>
-                </div>
+              <div class="inline-actions">
+                <select class="input" id="onboarding-window-effect">
+                  <option value="mica" data-i18n="settings.appearance.effect.mica"></option>
+                  <option value="acrylic" data-i18n="settings.appearance.effect.acrylic"></option>
+                  <option value="tabbed" data-i18n="settings.appearance.effect.tabbed"></option>
+                </select>
               </div>
-              <div class="control onboarding-control">
-                <div class="control-title">
-                  <span class="fluent-icon" data-icon="grid"></span>
-                  <span data-i18n="settings.appearance.profileColumns.label"></span>
-                </div>
-                <div class="inline-actions">
-                  <select class="input" id="onboarding-columns">
-                    <option value="1" data-i18n="settings.appearance.profileColumns.one"></option>
-                    <option value="2" data-i18n="settings.appearance.profileColumns.two"></option>
-                    <option value="3" data-i18n="settings.appearance.profileColumns.three"></option>
-                    <option value="4" data-i18n="settings.appearance.profileColumns.four"></option>
-                  </select>
-                </div>
+            </div>
+            <div class="onboarding-item">
+              <div class="control-title">
+                <span class="fluent-icon" data-icon="search"></span>
+                <span data-i18n="settings.appearance.inputMode.label"></span>
               </div>
-            </section>
-            <section class="onboarding-page hidden" data-step="4">
-              <div class="control onboarding-control">
-                <div class="control-title">
-                  <span class="fluent-icon" data-icon="save"></span>
-                  <span data-i18n="onboarding.page5.desc"></span>
-                </div>
+              <div class="inline-actions">
+                <select class="input" id="onboarding-input-mode">
+                  <option value="link" data-i18n="settings.appearance.inputMode.link"></option>
+                  <option value="search" data-i18n="settings.appearance.inputMode.search"></option>
+                  <option value="hidden" data-i18n="settings.appearance.inputMode.hidden"></option>
+                </select>
               </div>
-            </section>
-          </div>
-          <div class="onboarding-actions">
-            <button class="button ghost" id="onboarding-back" type="button">
-              <span class="fluent-icon" data-icon="arrow-left"></span>
-              <span data-i18n="onboarding.back"></span>
-            </button>
-            <button class="button ghost m-right-auto" id="onboarding-skip" type="button">
-              <span class="fluent-icon" data-icon="close"></span>
-              <span data-i18n="onboarding.skip"></span>
-            </button>
-            <button class="button" id="onboarding-next" type="button">
-              <span data-i18n="onboarding.next"></span>
-              <span class="fluent-icon" data-icon="arrow-right"></span>
-            </button>
-            <button class="button hidden" id="onboarding-finish" type="button">
-              <span class="fluent-icon" data-icon="save"></span>
-              <span data-i18n="onboarding.finish"></span>
-            </button>
-          </div>
+            </div>
+            <div class="onboarding-item">
+              <div class="control-title">
+                <span class="fluent-icon" data-icon="grid"></span>
+                <span data-i18n="settings.appearance.profileColumns.label"></span>
+              </div>
+              <div class="inline-actions">
+                <select class="input" id="onboarding-columns">
+                  <option value="1" data-i18n="settings.appearance.profileColumns.one"></option>
+                  <option value="2" data-i18n="settings.appearance.profileColumns.two"></option>
+                  <option value="3" data-i18n="settings.appearance.profileColumns.three"></option>
+                  <option value="4" data-i18n="settings.appearance.profileColumns.four"></option>
+                </select>
+              </div>
+            </div>
+          </section>
+          <section class="onboarding-page hidden" data-step="3">
+            <div class="onboarding-info" data-i18n="onboarding.page5.desc"></div>
+          </section>
         </div>
+      </div>
+      <div class="onboarding-actions">
+          <button class="button ghost" id="onboarding-back" type="button" disabled>
+            <span class="fluent-icon" data-icon="arrow-left"></span>
+            <span data-i18n="onboarding.back"></span>
+          </button>
+        <button class="button m-left-auto" id="onboarding-next" type="button">
+          <span data-i18n="onboarding.next"></span>
+          <span class="fluent-icon" data-icon="arrow-right"></span>
+        </button>
+        <button class="button hidden" id="onboarding-finish" type="button">
+          <span class="fluent-icon" data-icon="save"></span>
+          <span data-i18n="onboarding.finish"></span>
+        </button>
       </div>
     </div>
   </div>
@@ -677,10 +600,12 @@
       <div class="section-desc" data-i18n="settings.custom.add.userData"></div>
       <div class="inline-actions">
         <input class="input" id="custom-browser-userdata" type="text" />
-        <button class="button ghost" id="custom-browser-userdata-pick" type="button" data-i18n="settings.custom.add.userDataPick"></button>
+        <button class="button ghost" id="custom-browser-userdata-pick" type="button"
+          data-i18n="settings.custom.add.userDataPick"></button>
       </div>
       <div class="inline-actions">
-        <button class="button ghost" id="custom-browser-validate" type="button" data-i18n="settings.custom.validate.action"></button>
+        <button class="button ghost" id="custom-browser-validate" type="button"
+          data-i18n="settings.custom.validate.action"></button>
         <div class="status" id="custom-browser-validation-summary"></div>
       </div>
       <div class="rule-validation-list" id="custom-browser-validation-list"></div>

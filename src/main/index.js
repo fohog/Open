@@ -43,8 +43,6 @@ const {
 const { chooserWindow } = require('./windows');
 const {
   isRegistered,
-  isDefaultBrowser,
-  getDefaultBrowserProgIds,
   registerBrowser,
   unregisterBrowser
 } = require('./windows-browser');
@@ -143,8 +141,8 @@ function consumeUndoDeleteBatch(token) {
 function getIntegrationState() {
   return {
     registered: isRegistered(),
-    isDefault: Boolean(isDefaultBrowser()),
-    defaultProgIds: getDefaultBrowserProgIds()
+    isDefault: false,
+    defaultProgIds: { http: '', https: '' }
   };
 }
 

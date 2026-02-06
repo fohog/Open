@@ -10,7 +10,7 @@ let customDialogResolver = null;
 const enhancedSelects = new WeakMap();
 let selectDocListenerBound = false;
 let onboardingStep = 0;
-const onboardingTotalSteps = 5;
+const onboardingTotalSteps = 4;
 let onboardingSessionLocale = '';
 let onboardingLiveUpdateQueue = Promise.resolve();
 
@@ -1046,7 +1046,10 @@ function renderOnboardingBrowserList() {
   const list = document.getElementById('onboarding-browser-list');
   if (!list) return;
   list.innerHTML = '';
-  const ids = getBrowserIds();
+  const ids = getVisibleBrowserIds().filter((id) => {
+    const browser = config.browsers && config.browsers[id];
+    return Boolean(browser && browser.detected);
+  });
   const builtIn = getBuiltInBrowserIds();
   if (!ids.length) {
     const empty = document.createElement('div');
@@ -1060,8 +1063,24 @@ function renderOnboardingBrowserList() {
     if (!browser) return;
     const row = document.createElement('div');
     row.className = 'onboarding-browser-item';
+    const main = document.createElement('div');
+    main.className = 'onboarding-browser-main';
+    const iconData = browserIcons && browserIcons[id] ? browserIcons[id] : '';
+    if (iconData) {
+      const icon = document.createElement('img');
+      icon.className = 'onboarding-browser-icon';
+      icon.src = iconData;
+      icon.alt = browser.displayName || id;
+      main.appendChild(icon);
+    } else {
+      const icon = document.createElement('span');
+      icon.className = 'fluent-icon onboarding-browser-icon';
+      icon.setAttribute('data-icon', 'browser');
+      main.appendChild(icon);
+    }
     const name = document.createElement('span');
     name.textContent = browser.displayName || id;
+    main.appendChild(name);
     const toggleWrap = document.createElement('label');
     toggleWrap.className = 'toggle';
     const toggle = document.createElement('input');
@@ -1085,27 +1104,11 @@ function renderOnboardingBrowserList() {
       });
     }
     toggleWrap.appendChild(toggle);
-    row.appendChild(name);
+    row.appendChild(main);
     row.appendChild(toggleWrap);
     list.appendChild(row);
   });
-}
-
-function refreshOnboardingPreviewFrame() {
-  const frame = document.getElementById('onboarding-preview-frame');
-  if (!frame) return;
-  const inputMode = ['link', 'search', 'hidden'].includes(config.chooserInputMode) ? config.chooserInputMode : 'link';
-  const columns = [1, 2, 3, 4].includes(Number(config.chooserColumns)) ? Number(config.chooserColumns) : 2;
-  const params = new URLSearchParams({
-    preview: '1',
-    target: 'https://www.google.com',
-    inputMode,
-    columns: String(columns)
-  });
-  const nextSrc = `chooser.html?${params.toString()}`;
-  if (frame.getAttribute('src') !== nextSrc) {
-    frame.setAttribute('src', nextSrc);
-  }
+  applyIconGlyphs();
 }
 
 function syncMainSettingsFromOnboarding() {
@@ -1136,7 +1139,6 @@ async function applyOnboardingLiveUpdate(changeType) {
   const previousEffect = config.windowEffect;
   applyOnboardingFieldsToConfig();
   syncMainSettingsFromOnboarding();
-  refreshOnboardingPreviewFrame();
   await window.api.saveConfig(config);
   if (changeType === 'windowEffect' && previousEffect !== config.windowEffect) {
     await window.api.setWindowEffect(config.windowEffect);
@@ -1175,13 +1177,6 @@ function updateOnboardingStepUI() {
   pages.forEach((page, index) => {
     page.classList.toggle('hidden', index !== onboardingStep);
   });
-  const stepItems = Array.from(overlay.querySelectorAll('.onboarding-step-item[data-step-index]'));
-  stepItems.forEach((item) => {
-    const index = Number(item.getAttribute('data-step-index'));
-    const active = Number.isInteger(index) && index === onboardingStep;
-    item.classList.toggle('active', active);
-    item.setAttribute('aria-current', active ? 'step' : 'false');
-  });
   const indicator = document.getElementById('onboarding-step-indicator');
   if (indicator) indicator.textContent = `${onboardingStep + 1}/${onboardingTotalSteps}`;
   const back = document.getElementById('onboarding-back');
@@ -1215,7 +1210,6 @@ function syncOnboardingFields() {
     columns.value = current;
     syncEnhancedSelect(columns);
   }
-  refreshOnboardingPreviewFrame();
 }
 
 function applyOnboardingFieldsToConfig() {
@@ -1281,17 +1275,14 @@ function bindOnboarding(forceShow = false) {
 
   const back = document.getElementById('onboarding-back');
   const next = document.getElementById('onboarding-next');
-  const skip = document.getElementById('onboarding-skip');
   const finish = document.getElementById('onboarding-finish');
   const scan = document.getElementById('onboarding-scan');
-  const addCustom = document.getElementById('onboarding-add-custom');
   const register = document.getElementById('onboarding-register');
   const defaults = document.getElementById('onboarding-open-defaults');
   const language = document.getElementById('onboarding-language-select');
   const effect = document.getElementById('onboarding-window-effect');
   const inputMode = document.getElementById('onboarding-input-mode');
   const columns = document.getElementById('onboarding-columns');
-  const stepItems = Array.from(overlay.querySelectorAll('.onboarding-step-item[data-step-index]'));
 
   if (back) {
     back.onclick = () => {
@@ -1303,11 +1294,6 @@ function bindOnboarding(forceShow = false) {
     next.onclick = () => {
       onboardingStep = Math.min(onboardingTotalSteps - 1, onboardingStep + 1);
       updateOnboardingStepUI();
-    };
-  }
-  if (skip) {
-    skip.onclick = async () => {
-      await closeOnboarding(true);
     };
   }
   if (finish) {
@@ -1329,14 +1315,6 @@ function bindOnboarding(forceShow = false) {
       updateOnboardingIntegrationStatus();
     };
   }
-  if (addCustom) {
-    addCustom.onclick = async () => {
-      const added = await addCustomBrowserFlow();
-      if (added) {
-        renderOnboardingBrowserList();
-      }
-    };
-  }
   if (register) {
     register.onclick = async () => {
       await registerSystemBrowser();
@@ -1349,14 +1327,6 @@ function bindOnboarding(forceShow = false) {
       await window.api.openSystemSettings('default-apps');
     };
   }
-  stepItems.forEach((item) => {
-    item.onclick = () => {
-      const nextStep = Number(item.getAttribute('data-step-index'));
-      if (!Number.isInteger(nextStep)) return;
-      onboardingStep = Math.max(0, Math.min(onboardingTotalSteps - 1, nextStep));
-      updateOnboardingStepUI();
-    };
-  });
   if (language) {
     language.onchange = async () => {
       await enqueueOnboardingLiveUpdate('language');

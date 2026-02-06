@@ -8,23 +8,6 @@ let selectedProfile = { browserId: '', profileId: '' };
 let browserIcons = {};
 let searchQuery = '';
 let renameResolver = null;
-const query = (() => {
-  try {
-    return new URLSearchParams(window.location.search || '');
-  } catch (err) {
-    return new URLSearchParams('');
-  }
-})();
-const previewMode = query.get('preview') === '1';
-const previewTarget = query.get('target') || 'https://www.google.com';
-const previewColumns = (() => {
-  const value = Number(query.get('columns'));
-  return [1, 2, 3, 4].includes(value) ? value : 2;
-})();
-const previewInputMode = (() => {
-  const value = String(query.get('inputMode') || 'link').toLowerCase();
-  return ['link', 'search', 'hidden'].includes(value) ? value : 'link';
-})();
 
 function ensureApiBridge() {
   const listeners = {
@@ -423,67 +406,6 @@ function selectDefaultTab() {
   activeTab = firstAvailable || 'edge';
 }
 
-function getPreviewPayload() {
-  return {
-    dict: {
-      'chooser.title': 'Choose browser',
-      'chooser.question': 'Select a browser to open this link',
-      'chooser.question.file': 'Select a browser to open this file',
-      'chooser.text.placeholder': 'Link or file path',
-      'chooser.search.placeholder': 'Search profiles',
-      'chooser.copy': 'Copy link',
-      'chooser.settings': 'Settings',
-      'chooser.cancel': 'Cancel',
-      'chooser.open': 'Open',
-      'chooser.lastUsed': 'Last used',
-      'chooser.profile.default': 'Default',
-      'chooser.notConfigured': 'Browser not detected',
-      'chooser.search.empty': 'No matches'
-    },
-    config: {
-      chooserColumns: previewColumns,
-      chooserInputMode: previewInputMode,
-      closeChooserOnBlur: false,
-      debug: { showAllBrowsers: true },
-      lastSelection: { browserId: 'edge', profileId: 'Default' },
-      browsers: {
-        edge: {
-          enabled: true,
-          detected: true,
-          path: 'C:\\Program Files\\Microsoft\\Edge\\Application\\msedge.exe',
-          displayName: 'Microsoft Edge',
-          profiles: [
-            { id: 'Default', name: 'Default', avatarData: '' },
-            { id: 'Profile 1', name: 'Work', avatarData: '' }
-          ]
-        },
-        chrome: {
-          enabled: true,
-          detected: true,
-          path: 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe',
-          displayName: 'Google Chrome',
-          profiles: [
-            { id: 'Default', name: 'Default', avatarData: '' },
-            { id: 'Profile 2', name: 'Personal', avatarData: '' }
-          ]
-        },
-        firefox: {
-          enabled: true,
-          detected: true,
-          path: 'C:\\Program Files\\Mozilla Firefox\\firefox.exe',
-          displayName: 'Mozilla Firefox',
-          profiles: [{ id: 'default-release', name: 'default-release', avatarData: '' }]
-        }
-      }
-    },
-    target: previewTarget,
-    targetKind: 'link',
-    debugOverride: true,
-    browserIcons: {},
-    theme: { dark: false, accent: '#0078d4' }
-  };
-}
-
 function initUI() {
   document.title = t('chooser.title');
   const question = document.querySelector('.chooser-header .title');
@@ -610,14 +532,6 @@ function initUI() {
   renderTabContent();
 
   window.api.resizeChooser();
-  if (previewMode) {
-    document.body.classList.add('preview-mode');
-    const ids = ['copy-btn', 'settings-btn', 'cancel-btn', 'open-btn'];
-    ids.forEach((id) => {
-      const node = document.getElementById(id);
-      if (node) node.disabled = true;
-    });
-  }
 }
 
 async function copyTargetToClipboard() {
@@ -893,13 +807,9 @@ function handleInitPayload(payload) {
   initUI();
 }
 
-if (previewMode) {
-  handleInitPayload(getPreviewPayload());
-} else {
-  window.api.onInit((payload) => {
-    handleInitPayload(payload);
-  });
-}
+window.api.onInit((payload) => {
+  handleInitPayload(payload);
+});
 
 window.api.onBlur(() => {
   if (!config || config.closeChooserOnBlur === false) return;

@@ -1,3 +1,4 @@
+const path = require('path');
 const { spawnSync } = require('child_process');
 const { app } = require('electron');
 
@@ -15,29 +16,87 @@ function runReg(args) {
   };
 }
 
-function readRegValue(keyPath, valueName) {
-  const result = runReg(['query', keyPath, '/v', valueName]);
-  if (!result.ok) return '';
-  const lines = result.stdout.split(/\r?\n/).map((line) => line.trim()).filter(Boolean);
+function normalizeRegString(value) {
+  return String(value || '').replace(/\0/g, '').trim();
+}
+
+function parseRegValueFromOutput(stdout, valueName) {
+  const lines = String(stdout || '')
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter(Boolean);
+  const expected = normalizeRegString(valueName).toLowerCase();
   for (const line of lines) {
-    if (!line.toLowerCase().startsWith(valueName.toLowerCase())) continue;
+    const normalized = line.toLowerCase();
+    if (!normalized.startsWith(expected)) continue;
+    const match = line.match(/REG_\w+\s+(.+)$/i);
+    if (match && match[1]) return normalizeRegString(match[1]);
     const parts = line.split(/\s{2,}/);
-    return parts[2] ? parts[2].trim() : '';
+    if (parts[2]) return normalizeRegString(parts[2]);
   }
   return '';
 }
 
+function readRegValue(keyPath, valueName) {
+  const result = runReg(['query', keyPath, '/v', valueName]);
+  if (!result.ok) return '';
+  return parseRegValueFromOutput(result.stdout, valueName);
+}
+
+function readRegDefaultValue(keyPath) {
+  const result = runReg(['query', keyPath, '/ve']);
+  if (!result.ok) return '';
+  return parseRegValueFromOutput(result.stdout, '(Default)');
+}
+
+function normalizeProgId(value) {
+  return normalizeRegString(value).toLowerCase();
+}
+
+function isOpenProgId(value) {
+  const progId = normalizeProgId(value);
+  return progId === 'openurl' || progId.startsWith('openurl.');
+}
+
+function extractCommandExecutable(commandValue) {
+  const command = normalizeRegString(commandValue);
+  if (!command) return '';
+  const quoted = command.match(/^"([^"]+)"/);
+  const candidate = quoted && quoted[1] ? quoted[1] : command.split(/\s+/)[0];
+  return normalizeRegString(candidate);
+}
+
+function normalizePathForCompare(value) {
+  const raw = normalizeRegString(value);
+  if (!raw) return '';
+  try {
+    return path.normalize(raw).toLowerCase();
+  } catch (err) {
+    return raw.toLowerCase();
+  }
+}
+
 function isRegistered() {
   if (process.platform !== 'win32') return false;
-  const result = runReg(['query', 'HKCU\\Software\\RegisteredApplications', '/v', APP_ID]);
-  return result.ok && result.stdout.includes(CAPABILITIES_PATH);
+  const value = readRegValue('HKCU\\Software\\RegisteredApplications', APP_ID);
+  return normalizeRegString(value).toLowerCase() === CAPABILITIES_PATH.toLowerCase();
 }
 
 function isDefaultBrowser() {
   if (process.platform !== 'win32') return false;
-  const httpProgId = readRegValue(HTTP_USER_CHOICE, 'ProgId').toLowerCase();
-  const httpsProgId = readRegValue(HTTPS_USER_CHOICE, 'ProgId').toLowerCase();
-  return httpProgId === 'openurl' && httpsProgId === 'openurl';
+  const defaults = getDefaultBrowserProgIds();
+  if (isOpenProgId(defaults.http) && isOpenProgId(defaults.https)) return true;
+  const exe = normalizePathForCompare(app.getPath('exe'));
+  if (!exe) return false;
+  const commandFor = (progId) => {
+    const id = normalizeRegString(progId);
+    if (!id) return '';
+    return extractCommandExecutable(readRegDefaultValue(`HKCU\\Software\\Classes\\${id}\\shell\\open\\command`));
+  };
+  const httpCmdExe = normalizePathForCompare(commandFor(defaults.http));
+  const httpsCmdExe = normalizePathForCompare(commandFor(defaults.https));
+  if (!httpCmdExe || !httpsCmdExe) return false;
+  return httpCmdExe === exe && httpsCmdExe === exe;
 }
 
 function getDefaultBrowserProgIds() {
