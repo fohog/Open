@@ -338,10 +338,7 @@ function updateIntegrationUI() {
   const unregisterBtn = document.getElementById('integration-unregister');
   if (!status || !registerBtn || !unregisterBtn) return;
   const registered = Boolean(integrationState && integrationState.registered);
-  const isDefault = Boolean(integrationState && integrationState.isDefault);
-  let regText = registered ? t('settings.integration.registered') : t('settings.integration.unregistered');
-  if (registered && isDefault) regText = t('settings.integration.status.default');
-  else if (registered && !isDefault) regText = t('settings.integration.status.registeredOnly');
+  const regText = registered ? t('settings.integration.registered') : t('settings.integration.unregistered');
   status.textContent = regText;
   registerBtn.style.display = registered ? 'none' : '';
   unregisterBtn.style.display = registered ? '' : 'none';
@@ -1036,9 +1033,7 @@ function updateOnboardingIntegrationStatus() {
   const node = document.getElementById('onboarding-integration-status');
   if (!node) return;
   const registered = Boolean(integrationState && integrationState.registered);
-  const isDefault = Boolean(integrationState && integrationState.isDefault);
-  if (registered && isDefault) node.textContent = t('settings.integration.status.default');
-  else if (registered) node.textContent = t('settings.integration.status.registeredOnly');
+  if (registered) node.textContent = t('settings.integration.registered');
   else node.textContent = t('settings.integration.unregistered');
 }
 
@@ -1177,8 +1172,6 @@ function updateOnboardingStepUI() {
   pages.forEach((page, index) => {
     page.classList.toggle('hidden', index !== onboardingStep);
   });
-  const indicator = document.getElementById('onboarding-step-indicator');
-  if (indicator) indicator.textContent = `${onboardingStep + 1}/${onboardingTotalSteps}`;
   const back = document.getElementById('onboarding-back');
   const next = document.getElementById('onboarding-next');
   const finish = document.getElementById('onboarding-finish');

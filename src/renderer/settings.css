@@ -65,7 +65,8 @@
 }
 
 .settings-main .control .toggle,
-.browser-header .toggle {
+.browser-header .toggle,
+.onboarding-browser-main .toggle {
   margin-top: 10px;
   margin-bottom: 10px;
 }
@@ -300,7 +301,7 @@
   border: 0;
   border-radius: 0;
   background: transparent;
-  padding: 30px 30px;
+  padding: 20px 20px;
   display: grid;
   grid-template-rows: auto minmax(0, 1fr);
   gap: 10px;
@@ -361,7 +362,7 @@
   margin-bottom: 10px;
 }
 
-.onboarding-item {
+.onboarding-control {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -373,7 +374,7 @@
   gap: 10px;
 }
 
-.onboarding-item:last-child {
+.onboarding-control:last-child {
   margin-bottom: 0;
 }
 
@@ -409,6 +410,7 @@
   gap: 10px;
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
+  background: var(--panel);
   padding: 10px;
 }
 
