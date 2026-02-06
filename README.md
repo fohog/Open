@@ -15,7 +15,7 @@ npm install
 npm start
 ```
 
-> 注意：使用此方式启动的 Open 无法正常接管网页链接，需要使用打包版本，仅用于测试目的；
+> 注意：使用此方式启动的 Open 无法正常接管网页链接，需要使用已打包版本，仅用于测试目的；
 
 ### 打包
 ```bash
@@ -25,9 +25,9 @@ npm run pack
 打包输出在 `dist` 目录。
 
 ### 开发中说明
-Open 目前处于开发阶段，仅提供 CI 自动构建的不稳定版本。
+Open 当前处于开发阶段，仅提供 CI 自动构建的不稳定版本。GitHub Actions 会在每次 `push`、`pull_request` 和合并（合并后会触发目标分支的 `push`）时执行 `npm run pack`，并上传 `dist` 构建产物。
 
-GitHub Actions 会在每次 `push`、`pull_request` 和合并（合并后会触发目标分支的 `push`）时执行 `npm run pack`，并上传 `dist` 构建产物。
+下载方式：进入 GitHub Actions 页面，选择 `Build Pack` 工作流，打开最新一次运行，在页面底部 `Artifacts` 中下载构建产物。下载需要登录 GitHub 账号。直达：https://github.com/fohog/Open/actions/workflows/pack.yml
 
 ## 核心特性
 - 链接或 HTML 文件统一路由到浏览器选择器

@@ -16,7 +16,7 @@
     "pack": "electron-packager . Open --platform=win32 --arch=x64 --overwrite --out=dist --icon=assets/open.ico"
   },
   "devDependencies": {
-    "electron": "^40.1.0",
-    "electron-packager": "^17.1.2"
+    "@electron/packager": "^19.0.2",
+    "electron": "^40.1.0"
   }
 }
