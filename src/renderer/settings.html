@@ -427,17 +427,24 @@
         <div class="onboarding-pages">
           <section class="onboarding-page" data-step="0">
             <div class="onboarding-info" data-i18n="onboarding.page1.desc"></div>
-            <div class="onboarding-info" data-i18n="onboarding.page2.desc"></div>
             <div class="control onboarding-control">
               <div class="control-title">
                 <span class="fluent-icon" data-icon="shield"></span>
-                <span data-i18n="settings.integration.defaultAction"></span>
+                <span data-i18n="settings.integration.register"></span>
               </div>
               <div class="inline-actions">
                 <button class="button ghost" id="onboarding-register" type="button">
                   <span class="fluent-icon" data-icon="shield"></span>
                   <span data-i18n="settings.integration.register"></span>
                 </button>
+              </div>
+            </div>
+            <div class="control onboarding-control">
+              <div class="control-title">
+                <span class="fluent-icon" data-icon="open"></span>
+                <span data-i18n="settings.integration.defaultAction"></span>
+              </div>
+              <div class="inline-actions">
                 <button class="button ghost" id="onboarding-open-defaults" type="button">
                   <span class="fluent-icon" data-icon="open"></span>
                   <span data-i18n="settings.integration.defaultAction"></span>
@@ -448,14 +455,6 @@
           </section>
           <section class="onboarding-page hidden" data-step="1">
             <div class="onboarding-info" data-i18n="onboarding.page3.desc"></div>
-            <div class="control onboarding-control">
-              <div class="inline-actions">
-                <button class="button" id="onboarding-scan" type="button">
-                  <span class="fluent-icon" data-icon="refresh"></span>
-                  <span data-i18n="settings.browsers.scan"></span>
-                </button>
-              </div>
-            </div>
             <div class="onboarding-browser-list" id="onboarding-browser-list"></div>
           </section>
           <section class="onboarding-page hidden" data-step="2">
@@ -528,7 +527,7 @@
           <span data-i18n="onboarding.next"></span>
           <span class="fluent-icon" data-icon="arrow-right"></span>
         </button>
-        <button class="button hidden" id="onboarding-finish" type="button">
+        <button class="button hidden m-left-auto" id="onboarding-finish" type="button">
           <span class="fluent-icon" data-icon="save"></span>
           <span data-i18n="onboarding.finish"></span>
         </button>
