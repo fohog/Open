@@ -347,8 +347,43 @@ async function refreshBrowserIconsAndRender() {
     const icons = await window.api.getBrowserIcons();
     if (icons && typeof icons === 'object') {
       browserIcons = icons;
-      renderBrowsers();
-      renderOnboardingBrowserList();
+      const updateIcon = (container, iconData, imgClass, placeholderSelector, altText) => {
+        if (!container || !iconData) return;
+        const img = container.querySelector(`img.${imgClass}`);
+        if (img) {
+          if (img.src !== iconData) img.src = iconData;
+          if (altText) img.alt = altText;
+          return;
+        }
+        const placeholder = container.querySelector(placeholderSelector);
+        const next = document.createElement('img');
+        next.className = imgClass;
+        next.src = iconData;
+        if (altText) next.alt = altText;
+        if (placeholder) {
+          placeholder.replaceWith(next);
+        } else {
+          container.prepend(next);
+        }
+      };
+
+      document.querySelectorAll('.browser-item[data-browser-id]').forEach((item) => {
+        const browserId = item.getAttribute('data-browser-id') || '';
+        const iconData = icons[browserId];
+        if (!iconData) return;
+        const titleWrap = item.querySelector('.browser-title-wrap');
+        const title = item.querySelector('.browser-title');
+        updateIcon(titleWrap, iconData, 'browser-icon', '.fluent-icon.browser-icon', title ? title.textContent : '');
+      });
+
+      document.querySelectorAll('.onboarding-browser-item[data-browser-id]').forEach((row) => {
+        const browserId = row.getAttribute('data-browser-id') || '';
+        const iconData = icons[browserId];
+        if (!iconData) return;
+        const main = row.querySelector('.onboarding-browser-main');
+        const name = row.querySelector('.onboarding-browser-main span:last-child');
+        updateIcon(main, iconData, 'onboarding-browser-icon', '.fluent-icon.onboarding-browser-icon', name ? name.textContent : '');
+      });
     }
   } catch (err) {
     // ignore
@@ -477,6 +512,7 @@ function renderBrowsers() {
 
     const item = document.createElement('div');
     item.className = 'browser-item';
+    item.setAttribute('data-browser-id', browserId);
 
     const header = document.createElement('div');
     header.className = 'browser-header';
@@ -1064,6 +1100,7 @@ function renderOnboardingBrowserList() {
     if (!browser) return;
     const row = document.createElement('div');
     row.className = 'onboarding-browser-item';
+    row.setAttribute('data-browser-id', id);
     const main = document.createElement('div');
     main.className = 'onboarding-browser-main';
     const iconData = browserIcons && browserIcons[id] ? browserIcons[id] : '';

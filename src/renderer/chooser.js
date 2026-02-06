@@ -148,8 +148,28 @@ async function refreshBrowserIcons() {
     const icons = await window.api.getBrowserIcons();
     if (icons && typeof icons === 'object') {
       browserIcons = icons;
-      renderTabs();
-      renderTabContent();
+      const tabs = document.getElementById('tabs');
+      if (!tabs) return;
+      tabs.querySelectorAll('.tab[data-browser-id]').forEach((tab) => {
+        const browserId = tab.getAttribute('data-browser-id') || '';
+        if (!browserId) return;
+        const iconData = icons[browserId];
+        if (!iconData) return;
+        const img = tab.querySelector('img.tab-icon');
+        if (img) {
+          if (img.src !== iconData) img.src = iconData;
+          return;
+        }
+        const placeholder = tab.querySelector('.fluent-icon');
+        const next = document.createElement('img');
+        next.className = 'tab-icon';
+        next.src = iconData;
+        if (placeholder) {
+          placeholder.replaceWith(next);
+        } else {
+          tab.prepend(next);
+        }
+      });
     }
   } catch (err) {
     // ignore
@@ -190,6 +210,7 @@ function renderTabs() {
   tabIds.forEach((tabId) => {
     const tab = document.createElement('button');
     tab.className = 'tab';
+    tab.setAttribute('data-browser-id', tabId);
 
     const iconDataUrl = browserIcons && browserIcons[tabId] ? browserIcons[tabId] : '';
     if (iconDataUrl) {
